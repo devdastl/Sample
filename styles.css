@@ -66,6 +66,8 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 }
 
 .compact-button {
+  appearance: none;
+  -webkit-appearance: none;
   min-height: 38px;
   padding: 0 10px;
   border: 1px solid var(--line);
