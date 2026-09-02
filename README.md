@@ -1,10 +1,10 @@
 # Rep Routine
 
-Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pull–Push–Legs–Pull–Push routine. It runs directly in the browser with no installation, compilation, framework, account, or backend.
+Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pull–Push–Legs–Pull–Push routine. It runs in the browser with no compilation, framework, account, or backend.
 
 ## Quick start
 
-1. Open `index.html` in a browser, or visit the deployed GitHub Pages link.
+1. Visit the deployed GitHub Pages link, or start the local static server described below.
 2. Select a weekday from Monday to Friday.
 3. Open **Manage → Workout plan** to create an exercise or choose one from your Exercise Library.
 4. Tap an exercise card to expand it.
@@ -103,13 +103,13 @@ Mobile browsers may suspend background pages and block sound or vibration while 
 - **Import** validates a Rep Routine backup before replacing browser data.
 - Backups contain the Exercise Library, weekday plan slots, scheduled rotations, dated history, weights, reps, tags, notes, program start date, and selected date.
 - Importing prepares the current weekday using the latest available performance and scheduled variation.
-- Older Rep Routine browser data and v2/v3 backups are migrated automatically.
+- Older Rep Routine browser data and v1–v4 backups are migrated automatically.
 
 Browser data is device- and browser-specific. Export backups periodically, especially before clearing browser data or changing phones.
 
 ## Running locally
 
-No build step is required. Open `index.html` directly, or serve the folder with any static HTTP server.
+No build step is required. Because the JavaScript uses native ES modules, serve the folder with any static HTTP server instead of double-clicking `index.html`.
 
 For example, with Python installed:
 
@@ -128,15 +128,20 @@ Then open `http://localhost:8000`.
 
 The application uses relative asset paths and requires no deployment configuration.
 
-When CSS or JavaScript changes, update the version query in `index.html` so mobile browsers fetch the newest assets after deployment.
+When CSS or JavaScript changes, update the shared version query in `index.html` and the imports inside `js/` so mobile browsers fetch a consistent set of assets after deployment.
 
 ## Project structure
 
 ```text
-index.html   Application structure and templates
-styles.css   Mobile-first layout and visual styling
-app.js       Storage, workout logic, history, backups, variations, and timer
-README.md    Feature reference and startup guide
+index.html       Application structure and templates
+styles.css       Mobile-first layout and visual styling
+js/core.js       Schedule, date, formatting, and shared browser helpers
+js/storage.js    Data schema, validation, migrations, import preparation, and persistence
+js/workouts.js   Sessions, rotations, Exercise Library, and progressive-overload rules
+js/manager.js    Workout Plan, Exercise Library, scheduled rotation, and tag management UI
+js/timer.js      Rest timer, six-beep alarm, and vibration behavior
+js/app.js        Workout rendering, history, backups, and application startup
+README.md        Feature reference and startup guide
 ```
 
 ## Data and privacy
