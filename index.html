@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#11130f" />
+    <title>Rep Routine</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Weekly training</p>
+          <h1>Rep Routine</h1>
+        </div>
+        <button class="icon-button" id="resetWeekButton" type="button" aria-label="Reset workout data" title="Reset workout data">
+          <span aria-hidden="true">↻</span>
+        </button>
+      </header>
+
+      <nav class="day-tabs" id="dayTabs" aria-label="Workout days"></nav>
+
+      <main>
+        <section class="workout-heading">
+          <div>
+            <p class="eyebrow" id="dateLabel"></p>
+            <h2 id="workoutTitle">Pull day</h2>
+          </div>
+          <div class="exercise-count" id="exerciseCount">0 exercises</div>
+        </section>
+
+        <section class="exercise-list" id="exerciseList" aria-live="polite"></section>
+
+        <button class="add-exercise-button" id="showExerciseFormButton" type="button">
+          <span aria-hidden="true">＋</span> Add exercise
+        </button>
+
+        <form class="add-exercise-form hidden" id="exerciseForm">
+          <label for="exerciseName">Exercise name</label>
+          <div class="form-row">
+            <input id="exerciseName" name="exerciseName" type="text" maxlength="50" placeholder="e.g. Lat pulldown" autocomplete="off" required />
+            <button class="primary-button" type="submit">Add</button>
+          </div>
+          <button class="text-button" id="cancelExerciseButton" type="button">Cancel</button>
+        </form>
+      </main>
+    </div>
+
+    <aside class="timer-panel" id="timerPanel" aria-label="Rest timer">
+      <div class="timer-copy">
+        <p class="eyebrow">Rest timer</p>
+        <p class="timer-display" id="timerDisplay" aria-live="polite">01:00</p>
+      </div>
+      <div class="timer-controls">
+        <button class="timer-preset active" type="button" data-seconds="60">1 min</button>
+        <button class="timer-preset" type="button" data-seconds="120">2 min</button>
+        <button class="timer-preset" id="customTimerButton" type="button">Custom</button>
+        <button class="timer-toggle" id="timerToggle" type="button">Start</button>
+      </div>
+      <form class="custom-timer-form hidden" id="customTimerForm">
+        <label for="customSeconds">Custom rest in seconds</label>
+        <div class="form-row">
+          <input id="customSeconds" type="number" min="1" max="3600" inputmode="numeric" placeholder="90" required />
+          <button class="primary-button" type="submit">Set</button>
+        </div>
+      </form>
+    </aside>
+
+    <template id="exerciseTemplate">
+      <article class="exercise-card">
+        <header class="exercise-header">
+          <div class="exercise-title-wrap">
+            <span class="exercise-number"></span>
+            <h3 class="exercise-name"></h3>
+          </div>
+          <button class="remove-exercise icon-button" type="button" aria-label="Remove exercise">×</button>
+        </header>
+        <div class="set-headings" aria-hidden="true">
+          <span>Set</span><span>Weight (kg)</span><span>Reps</span><span></span>
+        </div>
+        <div class="sets-list"></div>
+        <button class="add-set-button" type="button">＋ Add set</button>
+      </article>
+    </template>
+
+    <template id="setTemplate">
+      <div class="set-row">
+        <span class="set-number"></span>
+        <label><span class="sr-only">Weight in kilograms</span><input class="weight-input" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" /></label>
+        <label><span class="sr-only">Repetitions</span><input class="reps-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
+        <button class="remove-set" type="button" aria-label="Remove set">×</button>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
