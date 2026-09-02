@@ -14,9 +14,12 @@
           <p class="eyebrow">Weekly training</p>
           <h1>Rep Routine</h1>
         </div>
-        <button class="icon-button" id="resetWeekButton" type="button" aria-label="Reset workout data" title="Reset workout data">
-          <span aria-hidden="true">↻</span>
-        </button>
+        <div class="header-actions">
+          <button class="compact-button" id="importButton" type="button">Import</button>
+          <button class="compact-button" id="exportButton" type="button">Export</button>
+          <button class="icon-button" id="historyButton" type="button" aria-label="Open workout history" title="Workout history">☰</button>
+          <input class="sr-only" id="importFile" type="file" accept="application/json,.json" />
+        </div>
       </header>
 
       <nav class="day-tabs" id="dayTabs" aria-label="Workout days"></nav>
@@ -24,7 +27,7 @@
       <main>
         <section class="workout-heading">
           <div>
-            <p class="eyebrow" id="dateLabel"></p>
+            <p class="eyebrow"><span id="dayLabel"></span> · <time id="dateLabel"></time></p>
             <h2 id="workoutTitle">Pull day</h2>
           </div>
           <div class="exercise-count" id="exerciseCount">0 exercises</div>
@@ -46,6 +49,21 @@
         </form>
       </main>
     </div>
+
+    <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+    <aside class="history-drawer" id="historyDrawer" aria-label="Workout history" aria-hidden="true">
+      <header class="drawer-header">
+        <div>
+          <p class="eyebrow">Your training log</p>
+          <h2>History</h2>
+        </div>
+        <button class="icon-button" id="closeHistoryButton" type="button" aria-label="Close workout history">×</button>
+      </header>
+      <div class="history-list" id="historyList"></div>
+      <button class="danger-button" id="resetWeekButton" type="button">Clear all workout data</button>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <aside class="timer-panel" id="timerPanel" aria-label="Rest timer">
       <div class="timer-copy">

@@ -32,12 +32,13 @@ button { cursor: pointer; }
   padding: max(22px, env(safe-area-inset-top)) 18px 180px;
 }
 
-.topbar, .workout-heading, .exercise-header, .form-row, .timer-controls {
+.topbar, .workout-heading, .exercise-header, .form-row, .timer-controls, .header-actions, .drawer-header {
   display: flex;
   align-items: center;
 }
 
 .topbar { justify-content: space-between; margin-bottom: 24px; }
+.header-actions { gap: 7px; }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: clamp(1.75rem, 8vw, 2.4rem); letter-spacing: -0.04em; }
 h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
@@ -63,6 +64,18 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
   color: var(--muted);
   font-size: 1.35rem;
 }
+
+.compact-button {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: .72rem;
+  font-weight: 750;
+}
+.compact-button:hover { border-color: var(--accent); color: var(--accent); }
 
 .day-tabs {
   display: grid;
@@ -144,6 +157,67 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(201 245 90 
 .empty-state { padding: 36px 22px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); text-align: center; }
 .empty-state strong { display: block; margin-bottom: 5px; color: var(--text); }
 
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(2px);
+}
+
+.history-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  display: flex;
+  width: min(88vw, 390px);
+  padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+  flex-direction: column;
+  background: #171a14;
+  box-shadow: -20px 0 60px rgb(0 0 0 / 45%);
+  transform: translateX(105%);
+  transition: transform 220ms ease;
+}
+.history-drawer.open { transform: translateX(0); }
+.drawer-header { justify-content: space-between; margin-bottom: 20px; }
+.history-list { display: grid; gap: 9px; overflow-y: auto; padding-bottom: 15px; }
+.history-item {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+.history-item.selected { border-color: var(--accent); }
+.history-item-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.history-item-title { font-weight: 800; }
+.history-item-date, .history-exercises { color: var(--muted); font-size: .74rem; }
+.history-exercises { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-empty { padding: 30px 10px; color: var(--muted); text-align: center; }
+.danger-button { margin-top: auto; padding: 13px; border: 1px solid rgb(255 138 128 / 35%); border-radius: 11px; background: transparent; color: var(--danger); font-weight: 750; }
+
+.toast {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 30;
+  padding: 10px 15px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #171b0e;
+  font-size: .78rem;
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -15px);
+  transition: 180ms ease;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
 .timer-panel {
   position: fixed;
   right: 12px;
@@ -174,6 +248,9 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(201 245 90 
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 430px) {
+  .topbar { align-items: flex-start; }
+  .header-actions { display: grid; grid-template-columns: 1fr 1fr 38px; }
+  .header-actions .icon-button { width: 38px; height: 38px; }
   .timer-panel > .timer-copy { position: static; display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
   .timer-controls { justify-content: stretch; padding-left: 0; }
   .timer-controls > * { flex: 1; }
