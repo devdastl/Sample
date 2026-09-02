@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#11130f" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260902-2" />
+    <link rel="stylesheet" href="styles.css?v=20260902-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -40,7 +40,13 @@
         </button>
 
         <form class="add-exercise-form hidden" id="exerciseForm">
-          <label for="exerciseName">Exercise name</label>
+          <div class="library-picker hidden" id="libraryPicker">
+            <label for="librarySearch">Add from your library</label>
+            <input id="librarySearch" type="search" placeholder="Search exercises" autocomplete="off" />
+            <div class="library-options" id="libraryOptions"></div>
+            <div class="form-divider"><span>or create a new exercise</span></div>
+          </div>
+          <label for="exerciseName">New exercise name</label>
           <div class="form-row">
             <input id="exerciseName" name="exerciseName" type="text" maxlength="50" placeholder="e.g. Lat pulldown" autocomplete="off" required />
             <button class="primary-button" type="submit">Add</button>
@@ -163,6 +169,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=20260902-2"></script>
+    <script src="app.js?v=20260902-3"></script>
   </body>
 </html>

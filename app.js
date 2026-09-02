@@ -1,4 +1,5 @@
-const STORAGE_KEY = "rep-routine-v3";
+const STORAGE_KEY = "rep-routine-v4";
+const V3_STORAGE_KEY = "rep-routine-v3";
 const PREVIOUS_STORAGE_KEY = "rep-routine-v2";
 const LEGACY_STORAGE_KEY = "rep-routine-v1";
 const schedule = [
@@ -44,6 +45,9 @@ const historyDrawer = $("#historyDrawer");
 const historyList = $("#historyList");
 const drawerBackdrop = $("#drawerBackdrop");
 const tagDialog = $("#tagDialog");
+const libraryPicker = $("#libraryPicker");
+const librarySearch = $("#librarySearch");
+const libraryOptions = $("#libraryOptions");
 
 function startOfDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
 function toDateKey(date) {
@@ -69,10 +73,11 @@ function copyDefaultTags() { return JSON.parse(JSON.stringify(defaultTags)); }
 function emptyPlans() { return Object.fromEntries(schedule.map(day => [day.key, []])); }
 function createInitialState() {
   return {
-    version: 3,
+    version: 4,
     selectedDate: defaultSelectedDate(),
     programStartDate: toDateKey(currentWeek[0]),
     tags: copyDefaultTags(),
+    library: [],
     plans: emptyPlans(),
     sessions: {},
   };
@@ -92,16 +97,18 @@ function programWeek(dateKey) {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved?.version === 3 && saved.plans && saved.sessions) return normalizeV3(saved);
+    if (saved?.version === 4 && saved.library && saved.plans && saved.sessions) return normalizeV4(saved);
+    const v3 = JSON.parse(localStorage.getItem(V3_STORAGE_KEY));
+    if (v3?.version === 3 && v3.plans && v3.sessions) { const migrated = migrateV3(v3); persistMigratedState(migrated); return migrated; }
     const previous = JSON.parse(localStorage.getItem(PREVIOUS_STORAGE_KEY));
-    if (previous?.sessions) { const migrated = migrateV2(previous); persistMigratedState(migrated); return migrated; }
+    if (previous?.sessions) { const migrated = migrateV3(v2ToV3(previous)); persistMigratedState(migrated); return migrated; }
     const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY));
-    if (legacy?.workouts) { const migrated = migrateV1(legacy); persistMigratedState(migrated); return migrated; }
+    if (legacy?.workouts) { const migrated = migrateV3(v2ToV3(v1ToV2(legacy))); persistMigratedState(migrated); return migrated; }
   } catch {}
   return createInitialState();
 }
 
-function normalizeV3(candidate) {
+function normalizeV4(candidate) {
   const normalized = createInitialState();
   if (/^\d{4}-\d{2}-\d{2}$/.test(candidate.selectedDate || "")) normalized.selectedDate = candidate.selectedDate;
   if (/^\d{4}-\d{2}-\d{2}$/.test(candidate.programStartDate || "")) normalized.programStartDate = candidate.programStartDate;
@@ -109,9 +116,10 @@ function normalizeV3(candidate) {
     const custom = Array.isArray(candidate.tags?.[group]) ? candidate.tags[group] : [];
     normalized.tags[group] = uniqueTags([...defaultTags[group], ...custom.filter(tag => !tag.builtin)]);
   }
-  for (const day of schedule) {
-    normalized.plans[day.key] = (candidate.plans?.[day.key] || []).map(normalizePlanExercise);
-  }
+  normalized.library = (candidate.library || []).map(normalizeLibraryExercise);
+  const libraryIds = new Set(normalized.library.map(exercise => exercise.id));
+  for (const day of schedule) normalized.plans[day.key] = (candidate.plans?.[day.key] || [])
+    .map(normalizeAssignment).filter(assignment => libraryIds.has(assignment.exerciseId));
   for (const [key, session] of Object.entries(candidate.sessions || {})) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(session?.exercises)) continue;
     normalized.sessions[key] = makeSession(key, session.exercises.map(normalizeSessionExercise));
@@ -124,7 +132,7 @@ function uniqueTags(tags) {
     id: String(tag.id), label: String(tag.label).slice(0, 20), builtin: Boolean(tag.builtin),
   }));
 }
-function normalizePlanExercise(exercise) {
+function normalizeLibraryExercise(exercise) {
   return {
     id: String(exercise?.id || makeId()),
     name: String(exercise?.name || "Untitled exercise").slice(0, 50),
@@ -135,10 +143,13 @@ function normalizePlanExercise(exercise) {
     })) : [],
   };
 }
+function normalizeAssignment(assignment) {
+  return { id: String(assignment?.id || makeId()), exerciseId: String(assignment?.exerciseId || "") };
+}
 function normalizeSessionExercise(exercise) {
   return {
     id: String(exercise?.id || makeId()),
-    planExerciseId: String(exercise?.planExerciseId || ""),
+    libraryExerciseId: String(exercise?.libraryExerciseId || ""),
     variationId: String(exercise?.variationId || "base"),
     name: String(exercise?.name || "Untitled exercise").slice(0, 50),
     typeTagId: String(exercise?.typeTagId || ""),
@@ -150,83 +161,127 @@ function normalizeSessionExercise(exercise) {
   };
 }
 
-function migrateV2(previous) {
-  const migrated = createInitialState();
+function normalizeName(name) { return String(name || "").trim().toLocaleLowerCase().replace(/\s+/g, " "); }
+function migrateV3(previous) {
+  const migrated = createInitialState(); const exerciseByName = new Map(); const planMappings = new Map();
   if (/^\d{4}-\d{2}-\d{2}$/.test(previous.selectedDate || "")) migrated.selectedDate = previous.selectedDate;
-  for (const [key, oldSession] of Object.entries(previous.sessions || {})) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(oldSession?.exercises)) continue;
-    migrated.sessions[key] = makeSession(key, oldSession.exercises.map(normalizeSessionExercise));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(previous.programStartDate || "")) migrated.programStartDate = previous.programStartDate;
+  for (const group of ["type", "difficulty"]) {
+    const custom = Array.isArray(previous.tags?.[group]) ? previous.tags[group] : [];
+    migrated.tags[group] = uniqueTags([...defaultTags[group], ...custom.filter(tag => !tag.builtin)]);
   }
-  buildPlansFromSessions(migrated);
+  for (const day of schedule) {
+    for (const rawPlanExercise of previous.plans?.[day.key] || []) {
+      const oldPlan = normalizeLibraryExercise(rawPlanExercise); const key = normalizeName(oldPlan.name);
+      let libraryExercise = exerciseByName.get(key);
+      if (!libraryExercise) {
+        libraryExercise = { ...oldPlan, id: makeId(), variations: [] };
+        migrated.library.push(libraryExercise); exerciseByName.set(key, libraryExercise);
+      } else {
+        if (!libraryExercise.typeTagId && oldPlan.typeTagId) libraryExercise.typeTagId = oldPlan.typeTagId;
+        if (!libraryExercise.note && oldPlan.note) libraryExercise.note = oldPlan.note;
+      }
+      const variationMap = new Map([["base", "base"]]);
+      oldPlan.variations.forEach(oldVariation => {
+        let shared = libraryExercise.variations.find(item => item.startWeek === oldVariation.startWeek && normalizeName(item.name) === normalizeName(oldVariation.name));
+        if (!shared) { shared = { ...oldVariation, id: makeId() }; libraryExercise.variations.push(shared); }
+        variationMap.set(oldVariation.id, shared.id);
+      });
+      planMappings.set(oldPlan.id, { exerciseId: libraryExercise.id, variationMap });
+      migrated.plans[day.key].push({ id: makeId(), exerciseId: libraryExercise.id });
+    }
+  }
+  for (const [key, rawSession] of Object.entries(previous.sessions || {})) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(rawSession?.exercises)) continue;
+    const exercises = rawSession.exercises.map(rawExercise => {
+      const oldExercise = normalizeSessionExercise({ ...rawExercise, libraryExerciseId: "" });
+      let mapping = planMappings.get(String(rawExercise.planExerciseId || ""));
+      if (!mapping) {
+        let libraryExercise = exerciseByName.get(normalizeName(oldExercise.name));
+        if (!libraryExercise) {
+          libraryExercise = normalizeLibraryExercise({ name: oldExercise.name, typeTagId: oldExercise.typeTagId, note: oldExercise.note });
+          migrated.library.push(libraryExercise); exerciseByName.set(normalizeName(libraryExercise.name), libraryExercise);
+        }
+        mapping = { exerciseId: libraryExercise.id, variationMap: new Map([["base", "base"]]) };
+      }
+      oldExercise.libraryExerciseId = mapping.exerciseId;
+      oldExercise.variationId = mapping.variationMap.get(String(rawExercise.variationId || "base")) || "base";
+      return oldExercise;
+    });
+    migrated.sessions[key] = makeSession(key, exercises);
+  }
   return migrated;
 }
-function migrateV1(legacy) {
-  const migrated = createInitialState();
+function v1ToV2(legacy) {
+  const converted = { selectedDate: defaultSelectedDate(), sessions: {} };
   currentWeek.forEach((date, index) => {
     const exercises = legacy.workouts?.[schedule[index].key];
     if (Array.isArray(exercises) && exercises.length) {
       const key = toDateKey(date);
-      migrated.sessions[key] = makeSession(key, exercises.map(normalizeSessionExercise));
+      converted.sessions[key] = makeSession(key, exercises);
     }
   });
   const selectedIndex = schedule.findIndex(day => day.key === legacy.selectedDay);
-  if (selectedIndex >= 0) migrated.selectedDate = toDateKey(currentWeek[selectedIndex]);
-  buildPlansFromSessions(migrated);
-  return migrated;
+  if (selectedIndex >= 0) converted.selectedDate = toDateKey(currentWeek[selectedIndex]);
+  return converted;
 }
-function buildPlansFromSessions(target) {
+function v2ToV3(previous) {
+  const converted = { version: 3, selectedDate: previous.selectedDate, programStartDate: toDateKey(currentWeek[0]), tags: copyDefaultTags(), plans: emptyPlans(), sessions: {} };
+  for (const [key, oldSession] of Object.entries(previous.sessions || {})) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && Array.isArray(oldSession?.exercises)) converted.sessions[key] = makeSession(key, oldSession.exercises.map(exercise => ({ ...normalizeSessionExercise(exercise), planExerciseId: "" })));
+  }
   for (const day of schedule) {
-    const matching = Object.values(target.sessions).filter(session => session.dayKey === day.key).sort((a, b) => b.date.localeCompare(a.date));
+    const matching = Object.values(converted.sessions).filter(session => session.dayKey === day.key).sort((a, b) => b.date.localeCompare(a.date));
     const latest = matching[0];
     if (!latest) continue;
-    target.plans[day.key] = latest.exercises.map(exercise => ({
+    converted.plans[day.key] = latest.exercises.map(exercise => ({
       id: makeId(), name: exercise.name, typeTagId: exercise.typeTagId || "", note: exercise.note || "", variations: [],
     }));
     matching.forEach(session => session.exercises.forEach((exercise, index) => {
-      const plan = target.plans[day.key][index] || target.plans[day.key].find(item => item.name.toLowerCase() === exercise.name.toLowerCase());
+      const plan = converted.plans[day.key][index] || converted.plans[day.key].find(item => normalizeName(item.name) === normalizeName(exercise.name));
       if (plan) { exercise.planExerciseId = plan.id; exercise.variationId = "base"; }
     }));
   }
+  return converted;
 }
 function persistMigratedState(value) { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); }
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
-function activeVariation(planExercise, dateKey) {
+function activeVariation(libraryExercise, dateKey) {
   const week = programWeek(dateKey);
-  const eligible = planExercise.variations.filter(item => item.startWeek <= week).sort((a, b) => b.startWeek - a.startWeek);
-  return eligible[0] || { id: "base", name: planExercise.name, startWeek: 1 };
+  const eligible = libraryExercise.variations.filter(item => item.startWeek <= week).sort((a, b) => b.startWeek - a.startWeek);
+  return eligible[0] || { id: "base", name: libraryExercise.name, startWeek: 1 };
 }
-function latestPerformance(dayKey, planExerciseId, variationId, beforeDate) {
+function latestPerformance(libraryExerciseId, variationId, beforeDate) {
   const matching = Object.values(state.sessions)
-    .filter(session => session.dayKey === dayKey && session.date < beforeDate)
+    .filter(session => session.date < beforeDate)
     .sort((a, b) => b.date.localeCompare(a.date));
   for (const session of matching) {
-    const exercise = session.exercises.find(item => item.planExerciseId === planExerciseId && item.variationId === variationId);
+    const exercise = session.exercises.find(item => item.libraryExerciseId === libraryExerciseId && item.variationId === variationId);
     if (exercise) return exercise;
   }
   return null;
 }
-function exerciseFromPlan(planExercise, dateKey) {
-  const day = dayForDate(dateKey); const variation = activeVariation(planExercise, dateKey);
-  const previous = latestPerformance(day.key, planExercise.id, variation.id, dateKey);
+function exerciseFromAssignment(assignment, dateKey) {
+  const libraryExercise = state.library.find(item => item.id === assignment.exerciseId);
+  if (!libraryExercise) return null;
+  const variation = activeVariation(libraryExercise, dateKey);
+  const previous = latestPerformance(libraryExercise.id, variation.id, dateKey);
   return {
-    id: makeId(), planExerciseId: planExercise.id, variationId: variation.id, name: variation.name,
-    typeTagId: planExercise.typeTagId, difficultyTagId: "", note: planExercise.note,
+    id: makeId(), libraryExerciseId: libraryExercise.id, variationId: variation.id, name: variation.name,
+    typeTagId: libraryExercise.typeTagId, difficultyTagId: "", note: libraryExercise.note,
     sets: previous ? previous.sets.map(set => ({ id: makeId(), weight: set.weight, reps: set.reps })) : [],
   };
 }
 function getSession(dateKey = state.selectedDate) {
   if (!state.sessions[dateKey]) {
     const day = dayForDate(dateKey);
-    state.sessions[dateKey] = makeSession(dateKey, state.plans[day.key].map(plan => exerciseFromPlan(plan, dateKey)));
+    state.sessions[dateKey] = makeSession(dateKey, state.plans[day.key].map(assignment => exerciseFromAssignment(assignment, dateKey)).filter(Boolean));
     saveState();
   }
   return state.sessions[dateKey];
 }
-function getPlanExercise(sessionExercise) {
-  const day = dayForDate(state.selectedDate);
-  return state.plans[day.key].find(item => item.id === sessionExercise.planExerciseId);
-}
+function getLibraryExercise(sessionExercise) { return state.library.find(item => item.id === sessionExercise.libraryExerciseId); }
 
 function render() {
   const session = getSession();
@@ -276,14 +331,18 @@ function updateCardMeta(card, exercise) {
 
 function renderExercise(exercise, exerciseIndex) {
   const card = $("#exerciseTemplate").content.firstElementChild.cloneNode(true);
-  const planExercise = getPlanExercise(exercise);
+  const libraryExercise = getLibraryExercise(exercise);
+  if (libraryExercise) {
+    exercise.typeTagId = libraryExercise.typeTagId;
+    exercise.note = libraryExercise.note;
+  }
   card.querySelector(".exercise-number").textContent = String(exerciseIndex + 1).padStart(2, "0");
   card.querySelector(".exercise-name").textContent = exercise.name; updateCardMeta(card, exercise);
   card.querySelector(".remove-exercise").addEventListener("click", () => {
     if (!confirm(`Remove ${exercise.name} from this workout plan? Past history will remain available.`)) return;
     getSession().exercises.splice(exerciseIndex, 1);
-    if (planExercise) {
-      const day = dayForDate(state.selectedDate); state.plans[day.key] = state.plans[day.key].filter(item => item.id !== planExercise.id);
+    if (libraryExercise) {
+      const day = dayForDate(state.selectedDate); state.plans[day.key] = state.plans[day.key].filter(item => item.exerciseId !== libraryExercise.id);
     }
     saveState(); render();
   });
@@ -294,23 +353,23 @@ function renderExercise(exercise, exerciseIndex) {
   });
 
   const details = card.querySelector(".exercise-details"); const detailsToggle = card.querySelector(".details-toggle");
-  detailsToggle.textContent = `Details${planExercise?.variations.length ? ` · ${planExercise.variations.length} var` : ""}`;
+  detailsToggle.textContent = `Details${libraryExercise?.variations.length ? ` · ${libraryExercise.variations.length} var` : ""}`;
   detailsToggle.addEventListener("click", () => {
     const willOpen = details.classList.contains("hidden"); details.classList.toggle("hidden");
-    detailsToggle.setAttribute("aria-expanded", String(willOpen)); detailsToggle.textContent = willOpen ? "Close" : `Details${planExercise?.variations.length ? ` · ${planExercise.variations.length} var` : ""}`;
+    detailsToggle.setAttribute("aria-expanded", String(willOpen)); detailsToggle.textContent = willOpen ? "Close" : `Details${libraryExercise?.variations.length ? ` · ${libraryExercise.variations.length} var` : ""}`;
   });
   const typeSelect = card.querySelector(".type-select"); const difficultySelect = card.querySelector(".difficulty-select");
   fillTagSelect(typeSelect, "type", exercise.typeTagId); fillTagSelect(difficultySelect, "difficulty", exercise.difficultyTagId);
   typeSelect.addEventListener("change", () => {
-    exercise.typeTagId = typeSelect.value; if (planExercise) planExercise.typeTagId = typeSelect.value; saveState(); updateCardMeta(card, exercise);
+    exercise.typeTagId = typeSelect.value; if (libraryExercise) libraryExercise.typeTagId = typeSelect.value; saveState(); updateCardMeta(card, exercise);
   });
   difficultySelect.addEventListener("change", () => { exercise.difficultyTagId = difficultySelect.value; saveState(); updateCardMeta(card, exercise); });
   card.querySelector(".manage-tags-button").addEventListener("click", openTagDialog);
   const noteInput = card.querySelector(".note-input"); noteInput.value = exercise.note;
   noteInput.addEventListener("input", () => {
-    exercise.note = noteInput.value; if (planExercise) planExercise.note = noteInput.value; saveState(); updateCardMeta(card, exercise);
+    exercise.note = noteInput.value; if (libraryExercise) libraryExercise.note = noteInput.value; saveState(); updateCardMeta(card, exercise);
   });
-  renderVariations(card, exercise, planExercise);
+  renderVariations(card, exercise, libraryExercise);
   return card;
 }
 
@@ -325,7 +384,7 @@ function renderSet(exercise, set, setIndex) {
   return row;
 }
 
-function renderVariations(card, sessionExercise, planExercise) {
+function renderVariations(card, sessionExercise, libraryExercise) {
   const list = card.querySelector(".variation-list"); const form = card.querySelector(".variation-form");
   card.querySelector(".program-week").textContent = `Program week ${programWeek(state.selectedDate)} · active changes persist`;
   card.querySelector(".variation-toggle").addEventListener("click", () => {
@@ -334,9 +393,9 @@ function renderVariations(card, sessionExercise, planExercise) {
       form.querySelector(".variation-week").value = programWeek(state.selectedDate) + 1; form.querySelector(".variation-name").focus();
     }
   });
-  if (!planExercise) { list.textContent = "This historical exercise is no longer in the plan."; form.classList.add("hidden"); return; }
-  const base = { id: "base", name: planExercise.name, startWeek: 1 };
-  [base, ...planExercise.variations.sort((a, b) => a.startWeek - b.startWeek)].forEach(variation => {
+  if (!libraryExercise) { list.textContent = "This historical exercise is no longer in the library."; form.classList.add("hidden"); return; }
+  const base = { id: "base", name: libraryExercise.name, startWeek: 1 };
+  [base, ...libraryExercise.variations.sort((a, b) => a.startWeek - b.startWeek)].forEach(variation => {
     const item = document.createElement("div"); item.className = `variation-item${variation.id === sessionExercise.variationId ? " active" : ""}`;
     const name = document.createElement("span"); name.className = "variation-name-label"; name.textContent = variation.name;
     const week = document.createElement("span"); week.className = "variation-week-label"; week.textContent = `Week ${variation.startWeek}+`;
@@ -346,8 +405,8 @@ function renderVariations(card, sessionExercise, planExercise) {
       remove.setAttribute("aria-label", `Remove ${variation.name}`);
       remove.addEventListener("click", () => {
         if (!confirm(`Remove the scheduled variation ${variation.name}?`)) return;
-        planExercise.variations = planExercise.variations.filter(item => item.id !== variation.id);
-        syncSelectedExerciseVariation(sessionExercise, planExercise); saveState(); render();
+        libraryExercise.variations = libraryExercise.variations.filter(item => item.id !== variation.id);
+        syncSelectedExerciseVariation(sessionExercise, libraryExercise); saveState(); render();
       }); item.append(remove);
     }
     list.append(item);
@@ -356,17 +415,17 @@ function renderVariations(card, sessionExercise, planExercise) {
     event.preventDefault();
     const name = form.querySelector(".variation-name").value.trim(); const startWeek = Number(form.querySelector(".variation-week").value);
     if (!name || !Number.isInteger(startWeek) || startWeek < 1) return;
-    const existing = planExercise.variations.find(item => item.startWeek === startWeek);
+    const existing = libraryExercise.variations.find(item => item.startWeek === startWeek);
     if (existing && !confirm(`Week ${startWeek} already has ${existing.name}. Replace it?`)) return;
-    planExercise.variations = planExercise.variations.filter(item => item.startWeek !== startWeek);
-    planExercise.variations.push({ id: makeId(), name, startWeek });
-    syncSelectedExerciseVariation(sessionExercise, planExercise); saveState(); render(); showToast(`${name} scheduled for week ${startWeek}`);
+    libraryExercise.variations = libraryExercise.variations.filter(item => item.startWeek !== startWeek);
+    libraryExercise.variations.push({ id: makeId(), name, startWeek });
+    syncSelectedExerciseVariation(sessionExercise, libraryExercise); saveState(); render(); showToast(`${name} scheduled for week ${startWeek}`);
   });
 }
-function syncSelectedExerciseVariation(sessionExercise, planExercise) {
-  const active = activeVariation(planExercise, state.selectedDate);
+function syncSelectedExerciseVariation(sessionExercise, libraryExercise) {
+  const active = activeVariation(libraryExercise, state.selectedDate);
   if (active.id === sessionExercise.variationId) { sessionExercise.name = active.name; return; }
-  const previous = latestPerformance(dayForDate(state.selectedDate).key, planExercise.id, active.id, state.selectedDate);
+  const previous = latestPerformance(libraryExercise.id, active.id, state.selectedDate);
   sessionExercise.variationId = active.id; sessionExercise.name = active.name;
   sessionExercise.sets = previous ? previous.sets.map(set => ({ id: makeId(), weight: set.weight, reps: set.reps })) : [];
 }
@@ -415,7 +474,7 @@ function renderTagManager() {
 function deleteTag(group, id) {
   if (!confirm("Delete this tag and remove it from all exercises?")) return;
   state.tags[group] = state.tags[group].filter(tag => tag.id !== id);
-  Object.values(state.plans).flat().forEach(exercise => { if (group === "type" && exercise.typeTagId === id) exercise.typeTagId = ""; });
+  state.library.forEach(exercise => { if (group === "type" && exercise.typeTagId === id) exercise.typeTagId = ""; });
   Object.values(state.sessions).flatMap(session => session.exercises).forEach(exercise => {
     if (group === "type" && exercise.typeTagId === id) exercise.typeTagId = "";
     if (group === "difficulty" && exercise.difficultyTagId === id) exercise.difficultyTagId = "";
@@ -423,14 +482,51 @@ function deleteTag(group, id) {
   saveState(); renderTagManager();
 }
 
-$("#showExerciseFormButton").addEventListener("click", () => { exerciseForm.classList.remove("hidden"); exerciseName.focus(); });
-$("#cancelExerciseButton").addEventListener("click", () => { exerciseForm.reset(); exerciseForm.classList.add("hidden"); });
+function renderLibraryOptions(query = "") {
+  const day = dayForDate(state.selectedDate); const assigned = new Set(state.plans[day.key].map(item => item.exerciseId));
+  const available = state.library
+    .filter(exercise => !assigned.has(exercise.id) && normalizeName(exercise.name).includes(normalizeName(query)))
+    .sort((a, b) => mostRecentUse(b.id).localeCompare(mostRecentUse(a.id)) || a.name.localeCompare(b.name));
+  libraryPicker.classList.toggle("hidden", state.library.length === 0);
+  libraryOptions.replaceChildren();
+  if (!available.length) {
+    const empty = document.createElement("p"); empty.className = "library-empty";
+    empty.textContent = query ? "No matching unassigned exercise" : "Every library exercise is already in this workout"; libraryOptions.append(empty); return;
+  }
+  available.forEach(exercise => {
+    const button = document.createElement("button"); button.type = "button"; button.className = "library-option";
+    const type = tagById("type", exercise.typeTagId);
+    button.innerHTML = `<span class="library-option-name">${escapeHtml(exercise.name)}</span><span class="library-option-meta">${escapeHtml(type?.label || "Exercise")}</span>`;
+    button.addEventListener("click", () => addLibraryExercise(exercise)); libraryOptions.append(button);
+  });
+}
+function mostRecentUse(libraryExerciseId) {
+  return Object.values(state.sessions).filter(session => session.exercises.some(exercise => exercise.libraryExerciseId === libraryExerciseId))
+    .reduce((latest, session) => session.date > latest ? session.date : latest, "");
+}
+function addLibraryExercise(libraryExercise) {
+  const day = dayForDate(state.selectedDate);
+  if (state.plans[day.key].some(item => item.exerciseId === libraryExercise.id)) { showToast("Exercise is already in this workout"); return; }
+  const assignment = { id: makeId(), exerciseId: libraryExercise.id };
+  state.plans[day.key].push(assignment); const sessionExercise = exerciseFromAssignment(assignment, state.selectedDate);
+  if (sessionExercise) getSession().exercises.push(sessionExercise);
+  saveState(); closeExerciseForm(); render(); showToast(`${libraryExercise.name} added from library`);
+}
+function closeExerciseForm() {
+  exerciseForm.reset(); exerciseForm.classList.add("hidden"); librarySearch.value = "";
+}
+$("#showExerciseFormButton").addEventListener("click", () => {
+  exerciseForm.classList.remove("hidden"); renderLibraryOptions();
+  if (state.library.length) librarySearch.focus(); else exerciseName.focus();
+});
+librarySearch.addEventListener("input", () => renderLibraryOptions(librarySearch.value));
+$("#cancelExerciseButton").addEventListener("click", closeExerciseForm);
 exerciseForm.addEventListener("submit", event => {
   event.preventDefault(); const name = exerciseName.value.trim(); if (!name) return;
-  const day = dayForDate(state.selectedDate);
-  const planExercise = { id: makeId(), name, typeTagId: "", note: "", variations: [] };
-  state.plans[day.key].push(planExercise); getSession().exercises.push(exerciseFromPlan(planExercise, state.selectedDate));
-  saveState(); exerciseForm.reset(); exerciseForm.classList.add("hidden"); render();
+  const existing = state.library.find(exercise => normalizeName(exercise.name) === normalizeName(name));
+  if (existing) { addLibraryExercise(existing); return; }
+  const libraryExercise = { id: makeId(), name, typeTagId: "", note: "", variations: [] };
+  state.library.push(libraryExercise); addLibraryExercise(libraryExercise);
 });
 $("#historyButton").addEventListener("click", openHistory);
 $("#closeHistoryButton").addEventListener("click", closeHistory);
@@ -447,7 +543,7 @@ document.querySelectorAll(".tag-form").forEach(form => form.addEventListener("su
 document.addEventListener("keydown", event => { if (event.key === "Escape") closeHistory(); });
 
 $("#exportButton").addEventListener("click", () => {
-  saveState(); const backup = { app: "Rep Routine", version: 3, exportedAt: new Date().toISOString(), data: state };
+  saveState(); const backup = { app: "Rep Routine", version: 4, exportedAt: new Date().toISOString(), data: state };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }); const link = document.createElement("a");
   link.href = URL.createObjectURL(blob); link.download = `rep-routine-backup-${toDateKey(today)}.json`; link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000); showToast("Workout data exported");
@@ -458,8 +554,9 @@ $("#importFile").addEventListener("change", async event => {
   try {
     const parsed = JSON.parse(await file.text()); const candidate = parsed.data || parsed;
     let imported;
-    if (candidate?.version === 3 && candidate.plans && candidate.sessions) imported = normalizeV3(candidate);
-    else if (candidate?.sessions) imported = migrateV2(candidate);
+    if (candidate?.version === 4 && candidate.library && candidate.plans && candidate.sessions) imported = normalizeV4(candidate);
+    else if (candidate?.version === 3 && candidate.plans && candidate.sessions) imported = migrateV3(candidate);
+    else if (candidate?.sessions) imported = migrateV3(v2ToV3(candidate));
     else throw new Error("Invalid backup");
     if (!confirm("Replace the workout data in this browser with the imported backup?")) return;
     imported.selectedDate = defaultSelectedDate();
