@@ -5,24 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#11130f" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260902-3" />
+    <link rel="stylesheet" href="styles.css?v=20260903-1" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Weekly training</p>
-          <h1>Rep Routine</h1>
-        </div>
-        <div class="header-actions">
-          <button class="compact-button" id="importButton" type="button">Import</button>
-          <button class="compact-button" id="exportButton" type="button">Export</button>
-          <button class="icon-button" id="historyButton" type="button" aria-label="Open workout history" title="Workout history">☰</button>
-          <input class="sr-only" id="importFile" type="file" accept="application/json,.json" />
-        </div>
-      </header>
+      <div class="sticky-app-header">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Weekly training</p>
+            <h1>Rep Routine</h1>
+          </div>
+          <div class="header-actions">
+            <button class="compact-button" id="importButton" type="button">Import</button>
+            <button class="compact-button" id="exportButton" type="button">Export</button>
+            <button class="icon-button" id="manageButton" type="button" aria-label="Manage workout plan and exercise library" title="Manage">⚙</button>
+            <button class="icon-button" id="historyButton" type="button" aria-label="Open workout history" title="Workout history">☰</button>
+            <input class="sr-only" id="importFile" type="file" accept="application/json,.json" />
+          </div>
+        </header>
 
-      <nav class="day-tabs" id="dayTabs" aria-label="Workout days"></nav>
+        <nav class="day-tabs" id="dayTabs" aria-label="Workout days"></nav>
+      </div>
 
       <main>
         <section class="workout-heading">
@@ -35,24 +38,7 @@
 
         <section class="exercise-list" id="exerciseList" aria-live="polite"></section>
 
-        <button class="add-exercise-button" id="showExerciseFormButton" type="button">
-          <span aria-hidden="true">＋</span> Add exercise
-        </button>
-
-        <form class="add-exercise-form hidden" id="exerciseForm">
-          <div class="library-picker hidden" id="libraryPicker">
-            <label for="librarySearch">Add from your library</label>
-            <input id="librarySearch" type="search" placeholder="Search exercises" autocomplete="off" />
-            <div class="library-options" id="libraryOptions"></div>
-            <div class="form-divider"><span>or create a new exercise</span></div>
-          </div>
-          <label for="exerciseName">New exercise name</label>
-          <div class="form-row">
-            <input id="exerciseName" name="exerciseName" type="text" maxlength="50" placeholder="e.g. Lat pulldown" autocomplete="off" required />
-            <button class="primary-button" type="submit">Add</button>
-          </div>
-          <button class="text-button" id="cancelExerciseButton" type="button">Cancel</button>
-        </form>
+        <button class="add-exercise-button" id="openManageFromWorkout" type="button">⚙ Manage workout plan</button>
       </main>
     </div>
 
@@ -67,6 +53,48 @@
       </header>
       <div class="history-list" id="historyList"></div>
       <button class="danger-button" id="resetWeekButton" type="button">Clear all workout data</button>
+    </aside>
+
+    <div class="drawer-backdrop hidden" id="manageBackdrop"></div>
+    <aside class="history-drawer manage-drawer" id="manageDrawer" aria-label="Manage workouts" aria-hidden="true">
+      <header class="drawer-header">
+        <div>
+          <p class="eyebrow">Program settings</p>
+          <h2>Manage</h2>
+        </div>
+        <button class="icon-button" id="closeManageButton" type="button" aria-label="Close management panel">×</button>
+      </header>
+      <div class="manage-tabs" role="tablist">
+        <button class="manage-tab active" type="button" data-manage-view="plan">Workout plan</button>
+        <button class="manage-tab" type="button" data-manage-view="library">Exercise library</button>
+      </div>
+      <div class="manage-scroll">
+        <section id="planManager">
+          <div class="manager-heading">
+            <div><p class="eyebrow" id="planDayLabel"></p><h3>Exercise order</h3></div>
+            <button class="small-primary-button" id="showPlanPickerButton" type="button">＋ Add</button>
+          </div>
+          <div class="manager-picker hidden" id="planPicker">
+            <input id="planSearch" type="search" placeholder="Search exercise library" autocomplete="off" />
+            <div class="manager-picker-options" id="planPickerOptions"></div>
+            <button class="text-button" id="createFromPlanButton" type="button">Create a new exercise</button>
+          </div>
+          <div class="plan-slot-list" id="planSlotList"></div>
+        </section>
+        <section class="hidden" id="libraryManager">
+          <div class="manager-heading">
+            <div><p class="eyebrow">Shared exercises</p><h3>Your library</h3></div>
+            <button class="small-primary-button" id="showLibraryCreateButton" type="button">＋ New</button>
+          </div>
+          <form class="manager-create-form hidden" id="libraryCreateForm">
+            <input id="libraryCreateName" type="text" maxlength="50" placeholder="Exercise name" autocomplete="off" required />
+            <button class="primary-button" type="submit">Create</button>
+          </form>
+          <input id="manageLibrarySearch" type="search" placeholder="Search your library" autocomplete="off" />
+          <div class="library-manager-list" id="libraryManagerList"></div>
+          <button class="manage-tags-button" id="manageTagsFromLibrary" type="button">Manage custom tags</button>
+        </section>
+      </div>
     </aside>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -125,6 +153,7 @@
             <span class="exercise-title-wrap">
               <span class="exercise-number"></span>
               <span class="exercise-name"></span>
+              <span class="variation-count hidden"></span>
             </span>
             <span class="collapse-chevron" aria-hidden="true">⌄</span>
           </button>
@@ -132,7 +161,7 @@
         <div class="exercise-body hidden">
           <div class="exercise-meta">
             <div class="tag-pills"></div>
-            <button class="details-toggle" type="button" aria-expanded="false">Details</button>
+            <label class="quick-difficulty"><span class="sr-only">Difficulty today</span><select class="difficulty-select" aria-label="Difficulty today"></select></label>
           </div>
           <p class="note-preview hidden"></p>
           <div class="set-headings" aria-hidden="true">
@@ -140,27 +169,6 @@
           </div>
           <div class="sets-list"></div>
           <button class="add-set-button" type="button">＋ Add set</button>
-          <section class="exercise-details hidden">
-            <div class="detail-grid">
-              <label>Exercise type<select class="type-select"></select></label>
-              <label>Difficulty today<select class="difficulty-select"></select></label>
-            </div>
-            <button class="manage-tags-button" type="button">Manage tags</button>
-            <label class="notes-label">Exercise note<textarea class="note-input" maxlength="500" rows="3" placeholder="Seat position, grip, form cue…"></textarea></label>
-            <div class="variations-section">
-              <div class="variation-heading">
-                <div><h4>Variations</h4><p class="program-week"></p></div>
-                <button class="variation-toggle" type="button">＋ Add</button>
-              </div>
-              <div class="variation-list"></div>
-              <form class="variation-form hidden">
-                <input class="variation-name" type="text" maxlength="50" placeholder="e.g. Barbell chest press" aria-label="Variation name" required />
-                <label>Starting week<input class="variation-week" type="number" min="1" max="520" inputmode="numeric" required /></label>
-                <button class="primary-button" type="submit">Schedule</button>
-              </form>
-            </div>
-            <button class="remove-exercise danger-inline-button" type="button">Remove from this workout</button>
-          </section>
         </div>
       </article>
     </template>
@@ -174,6 +182,6 @@
       </div>
     </template>
 
-    <script src="app.js?v=20260902-3"></script>
+    <script src="app.js?v=20260903-1"></script>
   </body>
 </html>

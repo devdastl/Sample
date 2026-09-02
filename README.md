@@ -6,7 +6,7 @@ Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pullâ€
 
 1. Open `index.html` in a browser, or visit the deployed GitHub Pages link.
 2. Select a weekday from Monday to Friday.
-3. Tap **Add exercise** to create an exercise or choose one from your Exercise Library.
+3. Open **Manage â†’ Workout plan** to create an exercise or choose one from your Exercise Library.
 4. Tap an exercise card to expand it.
 5. Add sets and enter the weight and repetitions.
 6. Use **1 min**, **2 min**, or **Custom** to start a rest timer.
@@ -36,15 +36,18 @@ Each date is stored as a separate workout session, so changing a future workout 
 - Add or remove any number of sets.
 - Record weight in kilograms and repetitions for every set.
 - Save one shared note per exercise for machine settings, grip, form cues, or other reminders.
+- Keep the application header and weekday selector visible while exercises scroll.
 
 ### Exercise Library
 
 - Reuse the same exercise on multiple weekdays.
 - Search existing exercises when adding them to a workout.
-- Recently used exercises appear first.
 - Matching names reuse an existing library entry, ignoring capitalization and extra spaces.
 - Removing an exercise from one weekday does not remove it from another weekday or erase its history.
-- Exercise type, notes, and variations are shared wherever the exercise is used.
+- Rename exercises and edit their type or shared setup note from the management panel.
+- Archive exercises to hide them from future selection without affecting active plans or history.
+- Permanently delete an exercise from the library and future plans while retaining readable workout history.
+- Exercise type and notes are shared wherever the exercise is used.
 
 ### Progressive overload
 
@@ -52,7 +55,7 @@ When a new dated workout is opened, Rep Routine finds the latest earlier perform
 
 Progress is shared across weekdays. If Lat Pulldown is performed on Monday and Thursday, Thursday starts with Monday's latest numbers, and the following Monday starts with Thursday's latest numbers.
 
-Different exercise variations maintain separate performance histories.
+Different exercises used in scheduled rotations maintain separate performance histories.
 
 ### Tags
 
@@ -62,9 +65,11 @@ Different exercise variations maintain separate performance histories.
 - Exercise-type tags are shared through the Exercise Library.
 - Difficulty is saved separately for each dated workout.
 
-### Scheduled variations
+### Workout plan and scheduled rotations
 
-Variations can automatically replace an exercise from a chosen program week onward.
+The management panel keeps structural editing away from the workout logger. Use it to add, remove, or reorder weekday exercise slots.
+
+Every scheduled replacement is a complete Exercise Library entry with its own type, note, and performance history. Replacements can be searched from the library or created while configuring a slot. A rotation can automatically replace an exercise from a chosen program week onward.
 
 Example:
 
@@ -74,7 +79,7 @@ Example:
 | Week 2 | Barbell chest press |
 | Week 3 onward | Machine chest press |
 
-The latest eligible variation remains active until another variation is scheduled. Each variation remembers its own latest weights and reps.
+The latest eligible exercise remains active until another replacement is scheduled. The rotation belongs only to that weekday workout slot, so changing Tuesday does not unexpectedly change Friday. Each exercise remembers its own latest weights and reps.
 
 ### Workout history
 
@@ -96,7 +101,7 @@ Mobile browsers may suspend background pages and block sound or vibration while 
 
 - **Export** downloads all application data as a JSON file.
 - **Import** validates a Rep Routine backup before replacing browser data.
-- Backups contain the Exercise Library, weekday plans, dated history, weights, reps, tags, notes, variations, program start date, and selected date.
+- Backups contain the Exercise Library, weekday plan slots, scheduled rotations, dated history, weights, reps, tags, notes, program start date, and selected date.
 - Importing prepares the current weekday using the latest available performance and scheduled variation.
 - Older Rep Routine browser data and v2/v3 backups are migrated automatically.
 

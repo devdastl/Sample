@@ -32,12 +32,22 @@ button { cursor: pointer; }
   padding: max(22px, env(safe-area-inset-top)) 18px 180px;
 }
 
+.sticky-app-header {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  margin: -8px -8px 28px;
+  padding: 8px;
+  background: linear-gradient(to bottom, var(--bg) 82%, rgb(17 19 15 / 88%) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+
 .topbar, .workout-heading, .exercise-header, .form-row, .timer-controls, .header-actions, .drawer-header {
   display: flex;
   align-items: center;
 }
 
-.topbar { justify-content: space-between; margin-bottom: 24px; }
+.topbar { justify-content: space-between; margin-bottom: 16px; }
 .header-actions { gap: 7px; }
 h1, h2, h3, p { margin: 0; }
 h1 { font-size: clamp(1.75rem, 8vw, 2.4rem); letter-spacing: -0.04em; }
@@ -83,7 +93,7 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 7px;
-  margin-bottom: 30px;
+  margin-bottom: 0;
 }
 
 .day-tab {
@@ -112,9 +122,10 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 
 .exercise-header { gap: 12px; }
 .exercise-collapse { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; }
-.exercise-title-wrap { display: flex; min-width: 0; align-items: center; gap: 11px; }
+.exercise-title-wrap { display: flex; min-width: 0; flex: 1; align-items: center; gap: 11px; }
 .exercise-number { display: grid; flex: 0 0 28px; height: 28px; place-items: center; border-radius: 8px; background: var(--surface-raised); color: var(--accent); font-size: .75rem; font-weight: 800; }
-.exercise-name { overflow: hidden; font-size: 1rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.exercise-name { min-width: 0; overflow: hidden; font-size: 1rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.variation-count { flex: 0 0 auto; padding: 4px 7px; border-radius: 999px; background: var(--surface-raised); color: var(--accent); font-size: .6rem; font-weight: 850; white-space: nowrap; }
 .collapse-chevron { flex: 0 0 auto; color: var(--muted); font-size: 1.2rem; transition: transform 160ms ease; }
 .exercise-card.open .collapse-chevron { transform: rotate(180deg); }
 .exercise-body { margin-top: 18px; }
@@ -128,6 +139,8 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 .details-toggle { flex: 0 0 auto; }
 .details-toggle:hover, .manage-tags-button:hover, .variation-toggle:hover { color: var(--accent); }
 .note-preview { margin: -5px 0 15px 39px; overflow: hidden; color: var(--muted); font-size: .75rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.quick-difficulty { flex: 0 0 116px; }
+.quick-difficulty select { min-height: 34px; padding: 5px 25px 5px 8px; background-position: calc(100% - 12px) 13px, calc(100% - 7px) 13px; font-size: .66rem; }
 
 .set-headings, .set-row {
   display: grid;
@@ -240,6 +253,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
   transition: transform 220ms ease;
 }
 .history-drawer.open { transform: translateX(0); }
+.manage-drawer { width: min(94vw, 470px); }
 .drawer-header { justify-content: space-between; margin-bottom: 20px; }
 .history-list { display: grid; gap: 9px; overflow-y: auto; padding-bottom: 15px; }
 .history-item {
@@ -258,6 +272,45 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .history-exercises { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .history-empty { padding: 30px 10px; color: var(--muted); text-align: center; }
 .danger-button { margin-top: auto; padding: 13px; border: 1px solid rgb(255 138 128 / 35%); border-radius: 11px; background: transparent; color: var(--danger); font-weight: 750; }
+
+.manage-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 17px; padding: 4px; border-radius: 12px; background: var(--surface); }
+.manage-tab { min-height: 38px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 800; }
+.manage-tab.active { background: var(--surface-raised); color: var(--accent); }
+.manage-scroll { min-height: 0; overflow-y: auto; padding-bottom: 20px; }
+.manager-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.manager-heading h3 { font-size: 1rem; }
+.small-primary-button { padding: 8px 11px; border: 0; border-radius: 9px; background: var(--accent); color: #171b0e; font-size: .7rem; font-weight: 850; }
+.manager-picker, .manager-create-form { margin-bottom: 13px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.manager-picker-options { display: grid; max-height: 190px; gap: 6px; margin-top: 8px; overflow-y: auto; }
+.manager-create-form { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
+.plan-slot-list, .library-manager-list { display: grid; gap: 9px; }
+.manager-empty { padding: 28px 14px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); font-size: .75rem; text-align: center; }
+.plan-slot, .library-editor { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.slot-header { display: grid; grid-template-columns: 1fr auto; gap: 9px; align-items: center; }
+.slot-title { overflow: hidden; font-size: .82rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.slot-actions { display: flex; gap: 4px; }
+.slot-action { display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 0; border-radius: 8px; background: var(--surface-raised); color: var(--muted); }
+.slot-action:disabled { opacity: .3; }
+.slot-action.danger { color: var(--danger); }
+.slot-schedule { display: grid; gap: 5px; margin-top: 10px; }
+.schedule-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 25px; gap: 7px; align-items: center; color: var(--muted); font-size: .68rem; }
+.schedule-row.active { color: var(--accent); }
+.schedule-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.schedule-remove { padding: 0; border: 0; background: transparent; color: var(--danger); }
+.schedule-add { margin-top: 8px; padding: 7px 9px; border: 1px dashed var(--line); border-radius: 8px; background: transparent; color: var(--muted); font-size: .68rem; font-weight: 750; }
+.schedule-form { display: grid; grid-template-columns: minmax(0, 1fr) 74px; gap: 7px; margin-top: 8px; }
+.schedule-results { grid-column: 1 / -1; display: grid; max-height: 130px; gap: 5px; overflow-y: auto; }
+.schedule-choice { padding: 8px; border: 0; border-radius: 8px; background: var(--surface-raised); color: var(--text); font-size: .7rem; text-align: left; }
+.library-editor summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; list-style: none; }
+.library-editor summary::-webkit-details-marker { display: none; }
+.library-editor-name { overflow: hidden; font-size: .82rem; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
+.library-editor-status { color: var(--muted); font-size: .65rem; }
+.library-fields { display: grid; gap: 10px; margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--line); }
+.library-fields label { color: var(--muted); font-size: .68rem; font-weight: 750; }
+.library-fields label > input, .library-fields label > select, .library-fields label > textarea { margin-top: 6px; }
+.library-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.archive-button, .delete-library-button { padding: 9px; border: 1px solid var(--line); border-radius: 9px; background: transparent; color: var(--muted); font-size: .68rem; font-weight: 750; }
+.delete-library-button { border-color: rgb(255 138 128 / 30%); color: var(--danger); }
 
 .toast {
   position: fixed;
@@ -308,7 +361,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 
 @media (max-width: 430px) {
   .topbar { align-items: flex-start; }
-  .header-actions { display: grid; grid-template-columns: 1fr 1fr 38px; }
+  .header-actions { display: grid; grid-template-columns: 1fr 1fr 38px 38px; }
   .header-actions .icon-button { width: 38px; height: 38px; }
   .timer-panel > .timer-copy { position: static; display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
   .timer-controls { justify-content: stretch; padding-left: 0; }
