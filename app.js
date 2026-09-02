@@ -28,6 +28,7 @@ let state = loadState();
 let timer = { selectedSeconds: 60, remaining: 60, intervalId: null, endsAt: null };
 let toastTimeout;
 let timerAudioContext;
+let expandedExerciseId = null;
 
 const $ = selector => document.querySelector(selector);
 const dayTabs = $("#dayTabs");
@@ -292,7 +293,7 @@ function render() {
     button.innerHTML = `${day.short}<span>${day.workout}</span>`;
     button.setAttribute("aria-label", `${day.label}, ${formatDate(dateKey, "short")}, ${day.workout} workout`);
     button.setAttribute("aria-pressed", String(dateKey === state.selectedDate));
-    button.addEventListener("click", () => { state.selectedDate = dateKey; saveState(); render(); });
+    button.addEventListener("click", () => { state.selectedDate = dateKey; expandedExerciseId = null; saveState(); render(); });
     return button;
   }));
   const selectedDate = fromDateKey(session.date);
@@ -336,8 +337,16 @@ function renderExercise(exercise, exerciseIndex) {
     exercise.typeTagId = libraryExercise.typeTagId;
     exercise.note = libraryExercise.note;
   }
+  card.dataset.exerciseId = exercise.id;
   card.querySelector(".exercise-number").textContent = String(exerciseIndex + 1).padStart(2, "0");
   card.querySelector(".exercise-name").textContent = exercise.name; updateCardMeta(card, exercise);
+  const collapseButton = card.querySelector(".exercise-collapse"); const exerciseBody = card.querySelector(".exercise-body");
+  setCardExpanded(card, expandedExerciseId === exercise.id);
+  collapseButton.addEventListener("click", () => {
+    const willOpen = exerciseBody.classList.contains("hidden");
+    document.querySelectorAll(".exercise-card.open").forEach(openCard => setCardExpanded(openCard, false));
+    expandedExerciseId = willOpen ? exercise.id : null; setCardExpanded(card, willOpen);
+  });
   card.querySelector(".remove-exercise").addEventListener("click", () => {
     if (!confirm(`Remove ${exercise.name} from this workout plan? Past history will remain available.`)) return;
     getSession().exercises.splice(exerciseIndex, 1);
@@ -371,6 +380,11 @@ function renderExercise(exercise, exerciseIndex) {
   });
   renderVariations(card, exercise, libraryExercise);
   return card;
+}
+function setCardExpanded(card, expanded) {
+  card.classList.toggle("open", expanded);
+  card.querySelector(".exercise-body").classList.toggle("hidden", !expanded);
+  card.querySelector(".exercise-collapse").setAttribute("aria-expanded", String(expanded));
 }
 
 function renderSet(exercise, set, setIndex) {
@@ -440,7 +454,7 @@ function renderHistory() {
     const button = document.createElement("button"); const weekday = fromDateKey(session.date).toLocaleDateString(undefined, { weekday: "short" });
     button.type = "button"; button.className = `history-item${session.date === state.selectedDate ? " selected" : ""}`;
     button.innerHTML = `<span class="history-item-top"><span class="history-item-title">${escapeHtml(session.workout)} · ${weekday}</span><span class="history-item-date">${formatDate(session.date, "short")}</span></span><span class="history-exercises">${escapeHtml(session.exercises.map(item => item.name).join(" · "))}</span>`;
-    button.addEventListener("click", () => { state.selectedDate = session.date; saveState(); closeHistory(); render(); }); historyList.append(button);
+    button.addEventListener("click", () => { state.selectedDate = session.date; expandedExerciseId = null; saveState(); closeHistory(); render(); }); historyList.append(button);
   });
 }
 function escapeHtml(value) { const element = document.createElement("span"); element.textContent = value; return element.innerHTML; }
@@ -509,7 +523,7 @@ function addLibraryExercise(libraryExercise) {
   if (state.plans[day.key].some(item => item.exerciseId === libraryExercise.id)) { showToast("Exercise is already in this workout"); return; }
   const assignment = { id: makeId(), exerciseId: libraryExercise.id };
   state.plans[day.key].push(assignment); const sessionExercise = exerciseFromAssignment(assignment, state.selectedDate);
-  if (sessionExercise) getSession().exercises.push(sessionExercise);
+  if (sessionExercise) { getSession().exercises.push(sessionExercise); expandedExerciseId = sessionExercise.id; }
   saveState(); closeExerciseForm(); render(); showToast(`${libraryExercise.name} added from library`);
 }
 function closeExerciseForm() {

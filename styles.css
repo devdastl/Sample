@@ -110,11 +110,14 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
   background: var(--surface);
 }
 
-.exercise-header { justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.exercise-header { gap: 12px; }
+.exercise-collapse { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; }
 .exercise-title-wrap { display: flex; min-width: 0; align-items: center; gap: 11px; }
 .exercise-number { display: grid; flex: 0 0 28px; height: 28px; place-items: center; border-radius: 8px; background: var(--surface-raised); color: var(--accent); font-size: .75rem; font-weight: 800; }
-.exercise-name { overflow: hidden; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
-.remove-exercise { width: 32px; height: 32px; border: 0; font-size: 1.15rem; }
+.exercise-name { overflow: hidden; font-size: 1rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.collapse-chevron { flex: 0 0 auto; color: var(--muted); font-size: 1.2rem; transition: transform 160ms ease; }
+.exercise-card.open .collapse-chevron { transform: rotate(180deg); }
+.exercise-body { margin-top: 18px; }
 
 .exercise-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -9px 0 15px 39px; }
 .tag-pills { display: flex; min-width: 0; flex-wrap: wrap; gap: 5px; }
@@ -151,7 +154,7 @@ select { appearance: none; background-image: linear-gradient(45deg, transparent 
 textarea { resize: vertical; line-height: 1.4; }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(201 245 90 / 10%); }
 .remove-set { width: 30px; height: 30px; border: 0; font-size: 1rem; }
-.remove-set:hover, .remove-exercise:hover { color: var(--danger); }
+.remove-set:hover { color: var(--danger); }
 
 .add-set-button, .add-exercise-button, .primary-button, .text-button, .timer-preset, .timer-toggle {
   border: 0;
@@ -182,6 +185,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .detail-grid label, .notes-label, .variation-form label { color: var(--muted); font-size: .7rem; font-weight: 750; }
 .detail-grid select, .notes-label textarea, .variation-form input { margin-top: 6px; }
 .manage-tags-button { margin: 8px 0 14px; }
+.danger-inline-button { width: 100%; margin-top: 15px; padding: 10px; border: 1px solid rgb(255 138 128 / 25%); border-radius: 9px; background: transparent; color: var(--danger); font-size: .72rem; font-weight: 750; }
 .notes-label { display: block; }
 .variations-section { margin-top: 17px; padding: 14px; border-radius: 13px; background: #151811; }
 .variation-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }

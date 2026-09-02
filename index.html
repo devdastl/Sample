@@ -121,42 +121,47 @@
     <template id="exerciseTemplate">
       <article class="exercise-card">
         <header class="exercise-header">
-          <div class="exercise-title-wrap">
-            <span class="exercise-number"></span>
-            <h3 class="exercise-name"></h3>
-          </div>
-          <button class="remove-exercise icon-button" type="button" aria-label="Remove exercise">×</button>
+          <button class="exercise-collapse" type="button" aria-expanded="false">
+            <span class="exercise-title-wrap">
+              <span class="exercise-number"></span>
+              <span class="exercise-name"></span>
+            </span>
+            <span class="collapse-chevron" aria-hidden="true">⌄</span>
+          </button>
         </header>
-        <div class="exercise-meta">
-          <div class="tag-pills"></div>
-          <button class="details-toggle" type="button" aria-expanded="false">Details</button>
-        </div>
-        <p class="note-preview hidden"></p>
-        <div class="set-headings" aria-hidden="true">
-          <span>Set</span><span>Weight (kg)</span><span>Reps</span><span></span>
-        </div>
-        <div class="sets-list"></div>
-        <button class="add-set-button" type="button">＋ Add set</button>
-        <section class="exercise-details hidden">
-          <div class="detail-grid">
-            <label>Exercise type<select class="type-select"></select></label>
-            <label>Difficulty today<select class="difficulty-select"></select></label>
+        <div class="exercise-body hidden">
+          <div class="exercise-meta">
+            <div class="tag-pills"></div>
+            <button class="details-toggle" type="button" aria-expanded="false">Details</button>
           </div>
-          <button class="manage-tags-button" type="button">Manage tags</button>
-          <label class="notes-label">Exercise note<textarea class="note-input" maxlength="500" rows="3" placeholder="Seat position, grip, form cue…"></textarea></label>
-          <div class="variations-section">
-            <div class="variation-heading">
-              <div><h4>Variations</h4><p class="program-week"></p></div>
-              <button class="variation-toggle" type="button">＋ Add</button>
+          <p class="note-preview hidden"></p>
+          <div class="set-headings" aria-hidden="true">
+            <span>Set</span><span>Weight (kg)</span><span>Reps</span><span></span>
+          </div>
+          <div class="sets-list"></div>
+          <button class="add-set-button" type="button">＋ Add set</button>
+          <section class="exercise-details hidden">
+            <div class="detail-grid">
+              <label>Exercise type<select class="type-select"></select></label>
+              <label>Difficulty today<select class="difficulty-select"></select></label>
             </div>
-            <div class="variation-list"></div>
-            <form class="variation-form hidden">
-              <input class="variation-name" type="text" maxlength="50" placeholder="e.g. Barbell chest press" aria-label="Variation name" required />
-              <label>Starting week<input class="variation-week" type="number" min="1" max="520" inputmode="numeric" required /></label>
-              <button class="primary-button" type="submit">Schedule</button>
-            </form>
-          </div>
-        </section>
+            <button class="manage-tags-button" type="button">Manage tags</button>
+            <label class="notes-label">Exercise note<textarea class="note-input" maxlength="500" rows="3" placeholder="Seat position, grip, form cue…"></textarea></label>
+            <div class="variations-section">
+              <div class="variation-heading">
+                <div><h4>Variations</h4><p class="program-week"></p></div>
+                <button class="variation-toggle" type="button">＋ Add</button>
+              </div>
+              <div class="variation-list"></div>
+              <form class="variation-form hidden">
+                <input class="variation-name" type="text" maxlength="50" placeholder="e.g. Barbell chest press" aria-label="Variation name" required />
+                <label>Starting week<input class="variation-week" type="number" min="1" max="520" inputmode="numeric" required /></label>
+                <button class="primary-button" type="submit">Schedule</button>
+              </form>
+            </div>
+            <button class="remove-exercise danger-inline-button" type="button">Remove from this workout</button>
+          </section>
+        </div>
       </article>
     </template>
 
