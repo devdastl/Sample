@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey } from "./core.js?v=20260903-4";
-import { saveState, state } from "./storage.js?v=20260903-4";
+import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey } from "./core.js?v=20260903-5";
+import { saveState, state } from "./storage.js?v=20260903-5";
 import {
   activeScheduleItem, createLibraryExercise, fillTagSelect, isCurrentWeekDate,
-  libraryExercise, programWeek, syncSelectedSessionToPlan, tagById,
-} from "./workouts.js?v=20260903-4";
+  libraryExercise, programWeek, syncDefinitionToCurrentSessions, syncSelectedSessionToPlan, tagById,
+} from "./workouts.js?v=20260903-5";
 
 export function initManager({ closeHistory, renderApp, showToast }) {
   const drawer = $("#manageDrawer"); const backdrop = $("#manageBackdrop"); const tagDialog = $("#tagDialog");
@@ -108,9 +108,6 @@ export function initManager({ closeHistory, renderApp, showToast }) {
     const note = details.querySelector(".library-note"); note.value = exercise.note; note.addEventListener("input", () => { exercise.note = note.value; syncDefinitionToCurrentSessions(exercise); saveState(); });
     details.querySelector(".archive-button").addEventListener("click", () => { exercise.archived = !exercise.archived; saveState(); renderLibraryManager(); showToast(exercise.archived ? "Exercise archived" : "Exercise restored"); });
     details.querySelector(".delete-library-button").addEventListener("click", () => deleteLibraryExercise(exercise)); return details;
-  }
-  function syncDefinitionToCurrentSessions(definition) {
-    Object.values(state.sessions).filter(session => isCurrentWeekDate(session.date)).forEach(session => session.exercises.filter(item => item.libraryExerciseId === definition.id).forEach(item => { item.name = definition.name; item.typeTagId = definition.typeTagId; item.note = definition.note; }));
   }
   function deleteLibraryExercise(exercise) {
     if (!confirm(`Permanently delete ${exercise.name} from the library and every future plan? Workout history will remain readable.`)) return;

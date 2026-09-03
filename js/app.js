@@ -1,8 +1,8 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260903-4";
-import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260903-4";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById } from "./workouts.js?v=20260903-4";
-import { initManager } from "./manager.js?v=20260903-4";
-import { initTimer } from "./timer.js?v=20260903-4";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260903-5";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260903-5";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260903-5";
+import { initManager } from "./manager.js?v=20260903-5";
+import { initTimer } from "./timer.js?v=20260903-5";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");
@@ -12,6 +12,7 @@ const AUTO_BACKUP_KEY = "rep-routine-last-friday-backup";
 const weightValues = ["", ...Array.from({ length: 201 }, (_, index) => String(index / 2))];
 const repValues = ["", ...Array.from({ length: 30 }, (_, index) => String(index + 1))];
 let editingSet = null; let pickerReturnFocus = null;
+let editingNoteExercise = null; let noteReturnFocus = null;
 
 function render() {
   const session = getSession();
@@ -32,7 +33,9 @@ function render() {
 function updateCardMeta(card, exercise) {
   const pills = card.querySelector(".tag-pills"); pills.replaceChildren(); const type = tagById("type", exercise.typeTagId);
   if (type) { const pill = document.createElement("span"); pill.className = "tag-pill type"; pill.textContent = type.label; pills.append(pill); }
-  const preview = card.querySelector(".note-preview"); preview.textContent = exercise.note ? `Note · ${exercise.note}` : ""; preview.classList.toggle("hidden", !exercise.note);
+  const hasNote = Boolean(exercise.note?.trim()); const preview = card.querySelector(".note-preview"); preview.textContent = hasNote ? `Note · ${exercise.note}` : ""; preview.classList.toggle("hidden", !hasNote);
+  const noteButton = card.querySelector(".exercise-note-button"); noteButton.classList.toggle("has-note", hasNote);
+  noteButton.setAttribute("aria-label", `${hasNote ? "Edit" : "Add"} note for ${exercise.name}`); noteButton.title = hasNote ? "Edit note" : "Add note";
 }
 function renderExercise(exercise, exerciseIndex) {
   const card = $("#exerciseTemplate").content.firstElementChild.cloneNode(true); const definition = libraryExercise(exercise.libraryExerciseId);
@@ -40,6 +43,7 @@ function renderExercise(exercise, exerciseIndex) {
   card.dataset.exerciseId = exercise.id; card.querySelector(".exercise-number").textContent = String(exerciseIndex + 1).padStart(2, "0"); card.querySelector(".exercise-name").textContent = exercise.name;
   const slot = state.plans[dayForDate(state.selectedDate).key].find(item => item.id === exercise.slotId); const replacements = Math.max(0, (slot?.schedule.length || 1) - 1); const variationCount = card.querySelector(".variation-count");
   variationCount.textContent = `${replacements} ${replacements === 1 ? "rotation" : "rotations"}`; variationCount.classList.toggle("hidden", replacements === 0); updateCardMeta(card, exercise);
+  const noteButton = card.querySelector(".exercise-note-button"); noteButton.addEventListener("click", () => openNoteEditor(exercise, noteButton));
   const collapseButton = card.querySelector(".exercise-collapse"); const body = card.querySelector(".exercise-body"); setCardExpanded(card, expandedExerciseId === exercise.id);
   collapseButton.addEventListener("click", () => { const open = body.classList.contains("hidden"); document.querySelectorAll(".exercise-card.open").forEach(item => setCardExpanded(item, false)); expandedExerciseId = open ? exercise.id : null; setCardExpanded(card, open); });
   const difficulty = card.querySelector(".difficulty-select"); fillTagSelect(difficulty, "difficulty", exercise.difficultyTagId); difficulty.addEventListener("change", () => { exercise.difficultyTagId = difficulty.value; saveState(); });
@@ -74,6 +78,28 @@ function openHistory() {
 }
 function closeHistory() { historyDrawer.classList.remove("open"); historyBackdrop.classList.add("hidden"); historyDrawer.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
 function showToast(message) { const toast = $("#toast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => toast.classList.remove("show"), 2400); }
+
+function openNoteEditor(exercise, returnFocus) {
+  editingNoteExercise = exercise; noteReturnFocus = returnFocus;
+  $("#noteDialogTitle").textContent = exercise.name;
+  $("#noteDialogScope").textContent = libraryExercise(exercise.libraryExerciseId) && isCurrentWeekDate(state.selectedDate) ? "Shared exercise note" : "Note for this workout";
+  const input = $("#exerciseNoteInput"); input.value = exercise.note || "";
+  $("#noteSaveStatus").textContent = "Autosaves as you type";
+  $("#noteDialog").showModal(); input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+}
+function saveNoteInput() {
+  if (!editingNoteExercise) return;
+  try {
+    updateExerciseNote(editingNoteExercise, $("#exerciseNoteInput").value);
+    const exercises = getSession().exercises;
+    exerciseList.querySelectorAll(".exercise-card").forEach(card => {
+      const exercise = exercises.find(item => item.id === card.dataset.exerciseId); if (exercise) updateCardMeta(card, exercise);
+    });
+    $("#noteSaveStatus").textContent = "Saved";
+  } catch {
+    $("#noteSaveStatus").textContent = "Not saved. Copy your note before closing.";
+  }
+}
 
 function buildWheel(wheel, values) {
   wheel._values = values; wheel._scrollTimeout = null;
@@ -143,6 +169,10 @@ $("#setPickerDoneButton").addEventListener("click", () => {
   if (!editingSet) return; editingSet.weight = $("#weightWheel").dataset.value; editingSet.reps = $("#repsWheel").dataset.value; saveState(); $("#setPickerDialog").close(); render();
 });
 $("#setPickerDialog").addEventListener("close", () => { editingSet = null; pickerReturnFocus?.focus(); pickerReturnFocus = null; });
+$("#exerciseNoteInput").addEventListener("input", saveNoteInput);
+$("#closeNoteDialogButton").addEventListener("click", () => $("#noteDialog").close());
+$("#doneNoteButton").addEventListener("click", () => $("#noteDialog").close());
+$("#noteDialog").addEventListener("close", () => { editingNoteExercise = null; if (noteReturnFocus?.isConnected) noteReturnFocus.focus(); noteReturnFocus = null; });
 document.addEventListener("keydown", event => { if (event.key === "Escape") { closeHistory(); if (manager.isOpen()) manager.closeManage(); } });
 render();
 setTimeout(checkFridayAutoBackup, 700);

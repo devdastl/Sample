@@ -37,6 +37,8 @@ Each date is stored as a separate workout session, so changing a future workout 
 - Choose weight and repetitions with a touch-friendly dual wheel: 0–100 kg in 0.5 kg steps and 1–30 reps.
 - Saved sets appear as compact **weight × reps** rows. Tap anywhere on the value row to edit both values; the separate trash button removes the set.
 - Save one shared note per exercise for machine settings, grip, form cues, or other reminders.
+- Expand an exercise card and tap the note icon between its type tag and difficulty dropdown to add or edit its note without opening Manage. The icon turns lime when a note exists, and changes autosave as you type.
+- During the current week, quick notes update the shared library note and that exercise's current-week cards. Notes edited in older history affect only that dated workout, preserving other snapshots.
 - Keep the application header and weekday selector visible while exercises scroll.
 
 ### Exercise Library

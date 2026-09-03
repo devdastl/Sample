@@ -1,5 +1,5 @@
-import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260903-4";
-import { saveState, state } from "./storage.js?v=20260903-4";
+import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260903-5";
+import { saveState, state } from "./storage.js?v=20260903-5";
 
 export function programWeek(dateKey) {
   const difference = startOfDay(fromDateKey(dateKey)) - startOfDay(fromDateKey(state.programStartDate));
@@ -37,6 +37,19 @@ export function getSession(dateKey = state.selectedDate) {
   return state.sessions[dateKey];
 }
 export function isCurrentWeekDate(dateKey) { return currentWeek.some(date => toDateKey(date) === dateKey); }
+export function syncDefinitionToCurrentSessions(definition) {
+  Object.values(state.sessions).filter(session => isCurrentWeekDate(session.date)).forEach(session => session.exercises.filter(item => item.libraryExerciseId === definition.id).forEach(item => { item.name = definition.name; item.typeTagId = definition.typeTagId; item.note = definition.note; }));
+}
+export function updateExerciseNote(exercise, note) {
+  const value = String(note ?? "").slice(0, 500); const definition = libraryExercise(exercise.libraryExerciseId);
+  if (definition && isCurrentWeekDate(state.selectedDate)) {
+    definition.note = value; syncDefinitionToCurrentSessions(definition);
+  } else {
+    // Historical or deleted-library exercises retain their independent snapshots.
+    exercise.note = value;
+  }
+  saveState();
+}
 export function syncSelectedSessionToPlan() {
   if (!isCurrentWeekDate(state.selectedDate)) return;
   const session = getSession(); const day = dayForDate(state.selectedDate);

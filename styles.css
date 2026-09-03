@@ -120,8 +120,13 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
   background: var(--surface);
 }
 
-.exercise-header { gap: 12px; }
-.exercise-collapse { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; }
+.exercise-header { gap: 8px; }
+.exercise-collapse { display: flex; min-width: 0; min-height: 44px; flex: 1; align-items: center; justify-content: space-between; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--text); text-align: left; }
+.exercise-note-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--muted); }
+.exercise-note-button svg { width: 19px; height: 19px; }
+.exercise-note-button.has-note { background: rgb(201 245 90 / 7%); color: var(--accent); }
+.exercise-note-button:hover, .exercise-note-button:active { background: var(--surface-raised); color: var(--accent); }
+.exercise-note-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .exercise-title-wrap { display: flex; min-width: 0; flex: 1; align-items: center; gap: 11px; }
 .exercise-number { display: grid; flex: 0 0 28px; height: 28px; place-items: center; border-radius: 8px; background: var(--surface-raised); color: var(--accent); font-size: .75rem; font-weight: 800; }
 .exercise-name { min-width: 0; overflow: hidden; font-size: 1rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
@@ -130,7 +135,8 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 .exercise-card.open .collapse-chevron { transform: rotate(180deg); }
 .exercise-body { margin-top: 18px; }
 
-.exercise-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -9px 0 15px 39px; }
+.exercise-meta { display: grid; grid-template-columns: minmax(0, 1fr) 44px 116px; align-items: center; gap: 8px; margin: -9px 0 15px; }
+.exercise-meta .tag-pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tag-pills { display: flex; min-width: 0; flex-wrap: wrap; gap: 5px; }
 .tag-pill { padding: 4px 7px; border-radius: 999px; background: var(--surface-raised); color: var(--muted); font-size: .64rem; font-weight: 800; }
 .tag-pill.type { color: var(--accent); }
@@ -138,7 +144,7 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 .details-toggle, .manage-tags-button, .variation-toggle { padding: 5px 0; border: 0; background: transparent; color: var(--muted); font-size: .7rem; font-weight: 800; }
 .details-toggle { flex: 0 0 auto; }
 .details-toggle:hover, .manage-tags-button:hover, .variation-toggle:hover { color: var(--accent); }
-.note-preview { margin: -5px 0 15px 39px; overflow: hidden; color: var(--muted); font-size: .75rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.note-preview { margin: -5px 0 15px; overflow: hidden; color: var(--muted); font-size: .75rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .quick-difficulty { flex: 0 0 116px; }
 .quick-difficulty select { min-height: 34px; padding: 5px 25px 5px 8px; background-position: calc(100% - 12px) 13px, calc(100% - 7px) 13px; font-size: .66rem; }
 
@@ -257,7 +263,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .variation-form .primary-button { min-height: 44px; padding: 0 11px; }
 
 .tag-dialog { width: min(calc(100% - 28px), 430px); max-height: min(80vh, 620px); padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: #171a14; color: var(--text); box-shadow: 0 25px 80px rgb(0 0 0 / 65%); }
-.tag-dialog::backdrop, .set-picker-dialog::backdrop { background: rgb(0 0 0 / 65%); backdrop-filter: blur(3px); }
+.tag-dialog::backdrop, .set-picker-dialog::backdrop, .note-dialog::backdrop { background: rgb(0 0 0 / 65%); backdrop-filter: blur(3px); }
 .dialog-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .tag-manager-group + .tag-manager-group { margin-top: 21px; }
 .tag-manager-group h3 { margin-bottom: 9px; font-size: .8rem; }
@@ -287,6 +293,16 @@ input:focus, select:focus, textarea:focus { border-color: var(--accent); box-sha
 .wheel-option { display: flex; width: 100%; height: 44px; align-items: center; justify-content: center; padding: 0; border: 0; scroll-snap-align: center; background: transparent; color: var(--muted); font-size: 1rem; font-variant-numeric: tabular-nums; opacity: .45; }
 .wheel-option.selected { color: var(--text); font-size: 1.16rem; font-weight: 850; opacity: 1; }
 .set-picker-done { width: 100%; min-height: 46px; margin-top: 16px; }
+
+.note-dialog { width: min(calc(100% - 28px), 430px); max-height: calc(100dvh - 28px); padding: 20px; overflow-y: auto; border: 1px solid var(--line); border-radius: 20px; background: #171a14; color: var(--text); box-shadow: 0 25px 80px rgb(0 0 0 / 65%); }
+.note-dialog .dialog-header { gap: 12px; margin-bottom: 16px; }
+.note-dialog-heading { min-width: 0; }
+.note-dialog h2 { font-size: 1.2rem; overflow-wrap: anywhere; }
+.note-dialog .icon-button { flex: 0 0 42px; }
+.note-dialog textarea { display: block; min-height: 136px; font-size: 1rem; line-height: 1.5; }
+.note-dialog-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.note-dialog-footer > span { color: var(--muted); font-size: .68rem; }
+.note-dialog-footer .primary-button { min-height: 44px; }
 
 .empty-state { padding: 36px 22px; border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted); text-align: center; }
 .empty-state strong { display: block; margin-bottom: 5px; color: var(--text); }

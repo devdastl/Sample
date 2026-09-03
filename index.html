@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#11130f" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260903-3" />
+    <link rel="stylesheet" href="styles.css?v=20260903-5" />
   </head>
   <body>
     <div class="app-shell">
@@ -151,6 +151,22 @@
       <button class="primary-button set-picker-done" id="setPickerDoneButton" type="button">Save set</button>
     </dialog>
 
+    <dialog class="note-dialog" id="noteDialog" aria-labelledby="noteDialogTitle" aria-describedby="noteDialogScope">
+      <div class="dialog-header">
+        <div class="note-dialog-heading">
+          <p class="eyebrow" id="noteDialogScope">Shared exercise note</p>
+          <h2 id="noteDialogTitle"></h2>
+        </div>
+        <button class="icon-button" id="closeNoteDialogButton" type="button" aria-label="Close note editor">×</button>
+      </div>
+      <label class="sr-only" for="exerciseNoteInput">Exercise note</label>
+      <textarea id="exerciseNoteInput" maxlength="500" rows="5" placeholder="Machine settings, grip, form cues…"></textarea>
+      <div class="note-dialog-footer">
+        <span id="noteSaveStatus" role="status">Autosaves as you type</span>
+        <button class="primary-button" id="doneNoteButton" type="button">Done</button>
+      </div>
+    </dialog>
+
     <aside class="timer-panel" id="timerPanel" aria-label="Rest timer">
       <div class="timer-copy">
         <p class="eyebrow">Rest timer</p>
@@ -186,6 +202,11 @@
         <div class="exercise-body hidden">
           <div class="exercise-meta">
             <div class="tag-pills"></div>
+            <button class="exercise-note-button" type="button" aria-label="Add exercise note" aria-haspopup="dialog" aria-controls="noteDialog">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5" />
+              </svg>
+            </button>
             <label class="quick-difficulty"><span class="sr-only">Difficulty today</span><select class="difficulty-select" aria-label="Difficulty today"></select></label>
           </div>
           <p class="note-preview hidden"></p>
@@ -219,6 +240,6 @@
       </div>
     </template>
 
-    <script type="module" src="js/app.js?v=20260903-4"></script>
+    <script type="module" src="js/app.js?v=20260903-5"></script>
   </body>
 </html>
