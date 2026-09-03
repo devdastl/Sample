@@ -9,6 +9,11 @@ export function initManager({ closeHistory, renderApp, showToast }) {
   const drawer = $("#manageDrawer"); const backdrop = $("#manageBackdrop"); const tagDialog = $("#tagDialog");
   let activeView = "plan";
 
+  function openLibraryCreate(prefill = "") {
+    activeView = "library"; renderManage(); $("#libraryCreateForm").classList.remove("hidden");
+    $("#libraryCreateName").value = prefill; $("#libraryCreateName").focus();
+  }
+
   function openManage(view = "plan") {
     closeHistory();
     if (view === "plan" && !isCurrentWeekDate(state.selectedDate)) {
@@ -68,7 +73,7 @@ export function initManager({ closeHistory, renderApp, showToast }) {
     });
     if (query && !state.library.some(item => normalizeName(item.name) === normalizeName(query))) {
       const create = document.createElement("button"); create.type = "button"; create.className = "schedule-choice"; create.textContent = `＋ Create “${query}”`;
-      create.addEventListener("click", () => scheduleExercise(slot, createLibraryExercise(query), form)); results.append(create);
+      create.addEventListener("click", () => openLibraryCreate(query)); results.append(create);
     }
   }
   function scheduleExercise(slot, exercise, form) {
@@ -137,7 +142,7 @@ export function initManager({ closeHistory, renderApp, showToast }) {
   document.querySelectorAll(".manage-tab").forEach(tab => tab.addEventListener("click", () => { activeView = tab.dataset.manageView; renderManage(); }));
   $("#showPlanPickerButton").addEventListener("click", () => { $("#planPicker").classList.toggle("hidden"); renderPlanPickerOptions(); if (!$("#planPicker").classList.contains("hidden")) $("#planSearch").focus(); });
   $("#planSearch").addEventListener("input", () => renderPlanPickerOptions($("#planSearch").value));
-  $("#createFromPlanButton").addEventListener("click", () => { const name = prompt("New exercise name")?.trim(); if (name) addSlot(createLibraryExercise(name)); });
+  $("#createFromPlanButton").addEventListener("click", () => openLibraryCreate($("#planSearch").value.trim()));
   $("#showLibraryCreateButton").addEventListener("click", () => { $("#libraryCreateForm").classList.toggle("hidden"); if (!$("#libraryCreateForm").classList.contains("hidden")) $("#libraryCreateName").focus(); });
   $("#libraryCreateForm").addEventListener("submit", event => { event.preventDefault(); const input = $("#libraryCreateName"); const name = input.value.trim(); if (!name) return; const existing = state.library.find(item => normalizeName(item.name) === normalizeName(name)); if (existing) { showToast("That exercise already exists"); return; } createLibraryExercise(name); input.value = ""; $("#libraryCreateForm").classList.add("hidden"); renderLibraryManager(); });
   $("#manageLibrarySearch").addEventListener("input", renderLibraryManager); $("#manageTagsFromLibrary").addEventListener("click", () => { renderTagManager(); tagDialog.showModal(); });
