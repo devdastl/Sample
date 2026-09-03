@@ -1,0 +1,61 @@
+{
+  "version": "2.0.1",
+  "assets": [
+    {
+      "url": "./",
+      "sha256": "6c7988a67f47b786c6cf9c57c684102d8aef1146dd7227447a370bb90205ad98"
+    },
+    {
+      "url": "./index.html",
+      "sha256": "6c7988a67f47b786c6cf9c57c684102d8aef1146dd7227447a370bb90205ad98"
+    },
+    {
+      "url": "./manifest.webmanifest",
+      "sha256": "a9d956ae8690e2eb26bc75a200b9ccb079b5de7a107e05ff90ccf4118f1998b0"
+    },
+    {
+      "url": "./styles.css?v=20260904-4",
+      "sha256": "fc5fc7a019e6f9d741e7baa74a66aa3c85d58a371a159246e9caa45b2c681d8c"
+    },
+    {
+      "url": "./js/core.js?v=20260904-4",
+      "sha256": "c30719eccb9f7758bbe0583a2683311a888384727fab61c332957e91df3afdac"
+    },
+    {
+      "url": "./js/storage.js?v=20260904-4",
+      "sha256": "2d3c641f6af3447f5ffd77a6014af45e66e82c9599451b3283c5d7b55c4b2430"
+    },
+    {
+      "url": "./js/workouts.js?v=20260904-4",
+      "sha256": "a3d96b694dac9689eb3f6b90ebd335e70937f43746b7e7083363e40fcb2e3b03"
+    },
+    {
+      "url": "./js/manager.js?v=20260904-4",
+      "sha256": "39d5851551e86659486a381acc886167aac9166f6dce24fa6f64262e2207724c"
+    },
+    {
+      "url": "./js/timer.js?v=20260904-4",
+      "sha256": "872a9ddb3bafba77e44fbb805641e92706399349071beb8e28ad98927e5722ab"
+    },
+    {
+      "url": "./js/pwa.js?v=20260904-4",
+      "sha256": "5af4d9813ee3e0048565995e6f04d1676617dea24f02c0bff3df16cc0f87e924"
+    },
+    {
+      "url": "./js/app.js?v=20260904-4",
+      "sha256": "3f4cbb7be45d25f85b1ad3f12196967869702a351d0c595af7d21918972a9f10"
+    },
+    {
+      "url": "./icons/icon-192.png",
+      "sha256": "72ff6580c5292457ac9adc66ebb7cf3ee43321fc0941b966fc9a0538cb984874"
+    },
+    {
+      "url": "./icons/icon-512.png",
+      "sha256": "86635cf7efa5ec097657c8dd858bb909b02aea5801408a35d90fbe2ccc4d96ae"
+    },
+    {
+      "url": "./icons/icon-maskable-512.png",
+      "sha256": "0598128b3bd6a1897fbe4405aafcaad77a72306174f29ef495886ec8ec085c92"
+    }
+  ]
+}

@@ -30,7 +30,7 @@ While online, Rep Routine checks for a newer deployed release in the background.
 - Choose **Update** to switch versions and reload.
 - Updates wait while a rest timer, editor, drawer, or another Rep Routine window is open.
 - Application updates replace cached code only. They do not clear workout data in browser storage.
-- If a new release cannot finish downloading, the last complete offline version continues to work.
+- Every cached asset is checked against the release manifest before an update can activate. If a new release is incomplete or still propagating through GitHub Pages, the last complete offline version continues to work.
 
 ## Weekly routine
 
@@ -164,6 +164,7 @@ index.html       Application structure and templates
 styles.css       Mobile-first layout and visual styling
 manifest.webmanifest  Install identity, display mode, theme, and icon metadata
 sw.js            Offline application shell and safe update lifecycle
+release.json      Generated file hashes used to verify a complete release
 icons/           Standard and maskable installation icons
 js/core.js       Schedule, date, formatting, and shared browser helpers
 js/storage.js    Data schema, validation, migrations, import preparation, and persistence
@@ -172,6 +173,7 @@ js/manager.js    Workout Plan, Exercise Library, scheduled rotation, and tag man
 js/timer.js      Rest timer, visible completion state, and notification trigger
 js/pwa.js        Installation, updates, notification permission, and local alerts
 js/app.js        Workout rendering, history, backups, and application startup
+tools/            Developer-only release manifest generator
 README.md        Feature reference and startup guide
 ```
 

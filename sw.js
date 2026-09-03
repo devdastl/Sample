@@ -1,25 +1,32 @@
-const VERSION = "2.0.0";
+const VERSION = "2.0.1";
 const CACHE_PREFIX = "rep-routine-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
-const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./styles.css?v=20260904-3",
-  "./js/core.js?v=20260904-3",
-  "./js/storage.js?v=20260904-3",
-  "./js/workouts.js?v=20260904-3",
-  "./js/manager.js?v=20260904-3",
-  "./js/timer.js?v=20260904-3",
-  "./js/pwa.js?v=20260904-3",
-  "./js/app.js?v=20260904-3",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png"
-];
+
+function bytesToHex(buffer) {
+  return [...new Uint8Array(buffer)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function cacheVerifiedRelease() {
+  const releaseUrl = new URL(`release.json?v=${encodeURIComponent(VERSION)}`, self.registration.scope);
+  const releaseResponse = await fetch(releaseUrl, { cache: "no-store" });
+  if (!releaseResponse.ok) throw new Error("Release manifest unavailable");
+  const release = await releaseResponse.json();
+  if (release.version !== VERSION || !Array.isArray(release.assets)) throw new Error("Release manifest mismatch");
+  const cache = await caches.open(CACHE_NAME);
+  for (const asset of release.assets) {
+    const assetUrl = new URL(asset.url, self.registration.scope);
+    const response = await fetch(assetUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Asset unavailable: ${asset.url}`);
+    const cacheResponse = response.clone();
+    const bytes = await response.arrayBuffer();
+    const digest = bytesToHex(await crypto.subtle.digest("SHA-256", bytes));
+    if (digest !== asset.sha256) throw new Error(`Asset mismatch: ${asset.url}`);
+    await cache.put(assetUrl, cacheResponse);
+  }
+}
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  event.waitUntil(cacheVerifiedRelease());
 });
 
 self.addEventListener("activate", event => {

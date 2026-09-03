@@ -1,6 +1,6 @@
-import { $ } from "./core.js?v=20260904-3";
+import { $ } from "./core.js?v=20260904-4";
 
-export const APP_VERSION = "2.0.0";
+export const APP_VERSION = "2.0.1";
 
 function requestWorkerUpdate(worker) {
   return new Promise(resolve => {
@@ -49,6 +49,7 @@ export function initPwa({ canApplyUpdate }) {
     "rep-routine-rest-finished",
   );
   const updateNotificationStatus = () => {
+    if (!notificationStatus || !notificationButton) return;
     if (!supportsNotifications) {
       notificationStatus.textContent = "System notifications are not supported by this browser.";
       notificationButton.textContent = "Unavailable"; notificationButton.disabled = true; return;
@@ -95,7 +96,7 @@ export function initPwa({ canApplyUpdate }) {
     installPrompt = null; installButton.classList.add("hidden"); installButton.disabled = false;
     status.textContent = choice.outcome === "accepted" ? "Installing…" : "Install canceled. You can use the browser menu later.";
   });
-  notificationButton.addEventListener("click", async () => {
+  notificationButton?.addEventListener("click", async () => {
     if (!supportsNotifications) return;
     notificationButton.disabled = true;
     try {

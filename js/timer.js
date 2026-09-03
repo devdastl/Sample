@@ -1,4 +1,4 @@
-import { $ } from "./core.js?v=20260904-3";
+import { $ } from "./core.js?v=20260904-4";
 
 const MAX_NOTIFICATION_DELAY_MS = 5 * 60 * 1000;
 
@@ -33,7 +33,8 @@ export function initTimer({ onComplete = () => {} } = {}) {
     }
   }
   function setComplete(complete) {
-    panel.classList.toggle("complete", complete); label.textContent = complete ? "Rest finished" : "Rest timer";
+    panel.classList.toggle("complete", complete);
+    if (label) label.textContent = complete ? "Rest finished" : "Rest timer";
   }
 
   document.querySelectorAll(".timer-preset[data-seconds]").forEach(button => button.addEventListener("click", () => selectTimer(Number(button.dataset.seconds))));

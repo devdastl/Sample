@@ -1,5 +1,5 @@
-import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260904-3";
-import { saveState, state } from "./storage.js?v=20260904-3";
+import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260904-4";
+import { saveState, state } from "./storage.js?v=20260904-4";
 
 export function programWeek(dateKey) {
   const difference = startOfDay(fromDateKey(dateKey)) - startOfDay(fromDateKey(state.programStartDate));
