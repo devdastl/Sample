@@ -1,7 +1,7 @@
 import {
   copyDefaultTags, currentWeek, dayForDate, defaultSelectedDate, defaultTags, emptyPlans,
   makeId, makeSession, normalizeName, schedule, toDateKey,
-} from "./core.js?v=20260904-1";
+} from "./core.js?v=20260904-2";
 
 const STORAGE_KEY = "rep-routine-v5";
 const V4_STORAGE_KEY = "rep-routine-v4";

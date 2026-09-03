@@ -1,6 +1,6 @@
-import { $ } from "./core.js?v=20260904-1";
+import { $ } from "./core.js?v=20260904-2";
 
-export const APP_VERSION = "1.0.0";
+export const APP_VERSION = "1.0.1";
 
 function requestWorkerUpdate(worker) {
   return new Promise(resolve => {

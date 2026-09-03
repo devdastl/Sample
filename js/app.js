@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260904-1";
-import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-1";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-1";
-import { initManager } from "./manager.js?v=20260904-1";
-import { initTimer } from "./timer.js?v=20260904-1";
-import { initPwa } from "./pwa.js?v=20260904-1";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260904-2";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-2";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-2";
+import { initManager } from "./manager.js?v=20260904-2";
+import { initTimer } from "./timer.js?v=20260904-2";
+import { initPwa } from "./pwa.js?v=20260904-2";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");

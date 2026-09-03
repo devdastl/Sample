@@ -1,18 +1,18 @@
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 const CACHE_PREFIX = "rep-routine-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./styles.css?v=20260904-1",
-  "./js/core.js?v=20260904-1",
-  "./js/storage.js?v=20260904-1",
-  "./js/workouts.js?v=20260904-1",
-  "./js/manager.js?v=20260904-1",
-  "./js/timer.js?v=20260904-1",
-  "./js/pwa.js?v=20260904-1",
-  "./js/app.js?v=20260904-1",
+  "./styles.css?v=20260904-2",
+  "./js/core.js?v=20260904-2",
+  "./js/storage.js?v=20260904-2",
+  "./js/workouts.js?v=20260904-2",
+  "./js/manager.js?v=20260904-2",
+  "./js/timer.js?v=20260904-2",
+  "./js/pwa.js?v=20260904-2",
+  "./js/app.js?v=20260904-2",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png"
