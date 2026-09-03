@@ -34,7 +34,8 @@ Each date is stored as a separate workout session, so changing a future workout 
 - Collapse exercise cards to keep long workouts easy to scan.
 - Only one exercise stays expanded at a time, reducing accidental edits.
 - Add or remove any number of sets.
-- Record weight in kilograms and repetitions for every set.
+- Choose weight and repetitions with a touch-friendly dual wheel: 0–100 kg in 0.5 kg steps and 1–30 reps.
+- Saved sets appear as compact **weight × reps** rows. Tap anywhere on the value row to edit both values; the separate trash button removes the set.
 - Save one shared note per exercise for machine settings, grip, form cues, or other reminders.
 - Keep the application header and weekday selector visible while exercises scroll.
 
@@ -92,20 +93,21 @@ The latest eligible exercise remains active until another replacement is schedul
 - Quick presets for 60 and 120 seconds.
 - Custom durations from 1 to 3,600 seconds.
 - Pause and restart support.
-- Six audible beeps and a vibration pattern when time expires.
+- Ten audible beeps and a vibration pattern when time expires.
 - Timestamp-based counting keeps the displayed time accurate after returning from a background tab.
 
 Mobile browsers may suspend background pages and block sound or vibration while the phone is locked. A normal website cannot guarantee a locked-screen alarm.
 
 ### Backup and restore
 
-- **Export** downloads all application data as a JSON file.
-- **Import** validates a Rep Routine backup before replacing browser data.
-- Backups contain the Exercise Library, weekday plan slots, scheduled rotations, dated history, weights, reps, tags, notes, program start date, and selected date.
+- **Export** downloads a compact JSON backup containing the Exercise Library, weekday plans, rotations, tags, notes, and only the latest recorded sets for each exercise.
+- **Import** validates a Rep Routine backup, keeps the latest performance for every exercise, and removes older dated entries before replacing browser data.
+- Compact backups remain bounded by the number of exercises instead of growing with every workout day.
 - Importing prepares the current weekday using the latest available performance and scheduled variation.
+- On Friday, opening the app automatically downloads one timestamped compact backup for that date.
 - Older Rep Routine browser data and v1–v4 backups are migrated automatically.
 
-Browser data is device- and browser-specific. Export backups periodically, especially before clearing browser data or changing phones.
+The compact backup is intended for recovery and progressive overload, not as a permanent day-by-day archive. Full dated history remains in the current browser until its data is cleared or replaced by an import. Browser data is device- and browser-specific, and Android may ask you to allow automatic downloads for the site.
 
 ## Running locally
 
@@ -139,13 +141,13 @@ js/core.js       Schedule, date, formatting, and shared browser helpers
 js/storage.js    Data schema, validation, migrations, import preparation, and persistence
 js/workouts.js   Sessions, rotations, Exercise Library, and progressive-overload rules
 js/manager.js    Workout Plan, Exercise Library, scheduled rotation, and tag management UI
-js/timer.js      Rest timer, six-beep alarm, and vibration behavior
+js/timer.js      Rest timer, ten-beep alarm, and vibration behavior
 js/app.js        Workout rendering, history, backups, and application startup
 README.md        Feature reference and startup guide
 ```
 
 ## Data and privacy
 
-Workout information remains in browser storage unless you export it. Rep Routine does not send data to a server. JSON backup files contain your workout history, so store them somewhere private.
+Workout information remains in browser storage unless you export it. Rep Routine does not send data to a server. JSON backup files contain exercise details and latest performance values, so store them somewhere private.
 
 Automatically reading a JSON file from the phone is not supported because browsers require user interaction and permission before accessing local files.

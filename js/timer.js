@@ -1,4 +1,4 @@
-import { $ } from "./core.js?v=20260903-2";
+import { $ } from "./core.js?v=20260903-4";
 
 export function initTimer() {
   const display = $("#timerDisplay"); const toggle = $("#timerToggle"); const customForm = $("#customTimerForm");
@@ -31,7 +31,7 @@ export function initTimer() {
     if (navigator.vibrate) navigator.vibrate([180, 90, 180, 90, 180]);
     try {
       const audio = prepareAudio();
-      [0, .3, .6, .9, 1.2, 1.5].forEach(delay => {
+      Array.from({ length: 10 }, (_, index) => index * .3).forEach(delay => {
         const oscillator = audio.createOscillator(); const gain = audio.createGain(); const start = audio.currentTime + delay;
         oscillator.frequency.value = 920; oscillator.connect(gain); gain.connect(audio.destination);
         gain.gain.setValueAtTime(.001, start); gain.gain.exponentialRampToValueAtTime(.24, start + .02); gain.gain.exponentialRampToValueAtTime(.001, start + .2);

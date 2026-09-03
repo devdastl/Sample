@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#11130f" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260903-1" />
+    <link rel="stylesheet" href="styles.css?v=20260903-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -126,6 +126,31 @@
       <p class="dialog-hint">Built-in tags stay available. Custom tags can be removed.</p>
     </dialog>
 
+    <dialog class="set-picker-dialog" id="setPickerDialog">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Set values</p>
+          <h2>Weight & reps</h2>
+        </div>
+        <button class="icon-button" id="closeSetPickerButton" type="button" aria-label="Close set picker">×</button>
+      </div>
+      <div class="wheel-picker">
+        <div class="wheel-column">
+          <span class="wheel-label">Weight (kg)</span>
+          <div class="picker-wheel-shell">
+            <div class="picker-wheel" id="weightWheel" role="listbox" aria-label="Weight in kilograms" tabindex="0"></div>
+          </div>
+        </div>
+        <div class="wheel-column">
+          <span class="wheel-label">Reps</span>
+          <div class="picker-wheel-shell">
+            <div class="picker-wheel" id="repsWheel" role="listbox" aria-label="Repetitions" tabindex="0"></div>
+          </div>
+        </div>
+      </div>
+      <button class="primary-button set-picker-done" id="setPickerDoneButton" type="button">Save set</button>
+    </dialog>
+
     <aside class="timer-panel" id="timerPanel" aria-label="Rest timer">
       <div class="timer-copy">
         <p class="eyebrow">Rest timer</p>
@@ -164,8 +189,8 @@
             <label class="quick-difficulty"><span class="sr-only">Difficulty today</span><select class="difficulty-select" aria-label="Difficulty today"></select></label>
           </div>
           <p class="note-preview hidden"></p>
-          <div class="set-headings" aria-hidden="true">
-            <span>Set</span><span>Weight (kg)</span><span>Reps</span><span></span>
+          <div class="set-list-heading" aria-hidden="true">
+            <span>Sets</span>
           </div>
           <div class="sets-list"></div>
           <button class="add-set-button" type="button">＋ Add set</button>
@@ -175,13 +200,25 @@
 
     <template id="setTemplate">
       <div class="set-row">
-        <span class="set-number"></span>
-        <label><span class="sr-only">Weight in kilograms</span><input class="weight-input" type="number" min="0" step="0.5" inputmode="decimal" placeholder="0" /></label>
-        <label><span class="sr-only">Repetitions</span><input class="reps-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0" /></label>
-        <button class="remove-set" type="button" aria-label="Remove set">×</button>
+        <button class="set-summary-button" type="button" aria-haspopup="dialog" aria-controls="setPickerDialog">
+          <span class="set-index"><span class="set-index-label">Set</span><span class="set-number"></span></span>
+          <span class="set-performance">
+            <span class="set-metric weight-metric"><span class="weight-value">—</span><span class="set-unit">kg</span></span>
+            <span class="set-times" aria-hidden="true">×</span>
+            <span class="set-metric reps-metric"><span class="reps-value">—</span><span class="set-unit">reps</span></span>
+          </span>
+          <svg class="set-edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z" />
+          </svg>
+        </button>
+        <button class="remove-set" type="button" aria-label="Remove set">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
+          </svg>
+        </button>
       </div>
     </template>
 
-    <script type="module" src="js/app.js?v=20260903-2"></script>
+    <script type="module" src="js/app.js?v=20260903-4"></script>
   </body>
 </html>

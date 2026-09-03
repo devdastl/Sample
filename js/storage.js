@@ -1,7 +1,7 @@
 import {
   copyDefaultTags, currentWeek, dayForDate, defaultSelectedDate, defaultTags, emptyPlans,
   makeId, makeSession, normalizeName, schedule, toDateKey,
-} from "./core.js?v=20260903-2";
+} from "./core.js?v=20260903-4";
 
 const STORAGE_KEY = "rep-routine-v5";
 const V4_STORAGE_KEY = "rep-routine-v4";
@@ -151,10 +151,23 @@ export let state = loadState();
 export function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 export function replaceState(nextState) { state = nextState; }
 export function resetState() { state = createInitialState(); saveState(); return state; }
+export function compactLatestState(candidate) {
+  const compact = normalizeV5(candidate); const seenExercises = new Set(); const latestSessions = {};
+  Object.values(compact.sessions).sort((a, b) => b.date.localeCompare(a.date)).forEach(session => {
+    const latestExercises = session.exercises.filter(exercise => {
+      const key = exercise.libraryExerciseId || `name:${normalizeName(exercise.name)}`;
+      if (seenExercises.has(key)) return false; seenExercises.add(key); return true;
+    });
+    if (latestExercises.length) latestSessions[session.date] = makeSession(session.date, latestExercises);
+  });
+  compact.sessions = latestSessions; return compact;
+}
 export function normalizeImportedState(candidate) {
-  if (candidate?.version === 5) return normalizeV5(candidate);
-  if (candidate?.version === 4) return migrateV4(candidate);
-  if (candidate?.version === 3) return migrateV4(migrateV3ToV4(candidate));
-  if (candidate?.sessions) return migrateV4(migrateV3ToV4(v2ToV3(candidate)));
-  throw new Error("Invalid backup");
+  let imported;
+  if (candidate?.version === 5) imported = normalizeV5(candidate);
+  else if (candidate?.version === 4) imported = migrateV4(candidate);
+  else if (candidate?.version === 3) imported = migrateV4(migrateV3ToV4(candidate));
+  else if (candidate?.sessions) imported = migrateV4(migrateV3ToV4(v2ToV3(candidate)));
+  else throw new Error("Invalid backup");
+  return compactLatestState(imported);
 }

@@ -1,13 +1,17 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey, today } from "./core.js?v=20260903-2";
-import { normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260903-2";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, tagById } from "./workouts.js?v=20260903-2";
-import { initManager } from "./manager.js?v=20260903-2";
-import { initTimer } from "./timer.js?v=20260903-2";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260903-4";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260903-4";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById } from "./workouts.js?v=20260903-4";
+import { initManager } from "./manager.js?v=20260903-4";
+import { initTimer } from "./timer.js?v=20260903-4";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");
 const historyDrawer = $("#historyDrawer"); const historyList = $("#historyList"); const historyBackdrop = $("#drawerBackdrop");
 let expandedExerciseId = null; let toastTimeout; let manager;
+const AUTO_BACKUP_KEY = "rep-routine-last-friday-backup";
+const weightValues = ["", ...Array.from({ length: 201 }, (_, index) => String(index / 2))];
+const repValues = ["", ...Array.from({ length: 30 }, (_, index) => String(index + 1))];
+let editingSet = null; let pickerReturnFocus = null;
 
 function render() {
   const session = getSession();
@@ -44,10 +48,15 @@ function renderExercise(exercise, exerciseIndex) {
 }
 function setCardExpanded(card, expanded) { card.classList.toggle("open", expanded); card.querySelector(".exercise-body").classList.toggle("hidden", !expanded); card.querySelector(".exercise-collapse").setAttribute("aria-expanded", String(expanded)); }
 function renderSet(exercise, set, index) {
-  const row = $("#setTemplate").content.firstElementChild.cloneNode(true); row.querySelector(".set-number").textContent = index + 1;
-  const weight = row.querySelector(".weight-input"); const reps = row.querySelector(".reps-input"); weight.value = set.weight; reps.value = set.reps;
-  weight.addEventListener("input", () => { set.weight = weight.value; saveState(); }); reps.addEventListener("input", () => { set.reps = reps.value; saveState(); });
-  row.querySelector(".remove-set").addEventListener("click", () => { exercise.sets.splice(index, 1); saveState(); render(); }); return row;
+  const row = $("#setTemplate").content.firstElementChild.cloneNode(true); row.querySelector(".set-number").textContent = String(index + 1).padStart(2, "0");
+  const weight = String(set.weight ?? ""); const reps = String(set.reps ?? ""); const summary = row.querySelector(".set-summary-button");
+  row.querySelector(".weight-value").textContent = weight || "—"; row.querySelector(".reps-value").textContent = reps || "—";
+  row.querySelector(".weight-metric").classList.toggle("is-empty", weight === ""); row.querySelector(".reps-metric").classList.toggle("is-empty", reps === "");
+  row.classList.toggle("is-empty", weight === "" && reps === "");
+  summary.setAttribute("aria-label", `Edit ${exercise.name}, set ${index + 1}: ${weight === "" ? "weight not set" : `${weight} kilograms`}, ${reps === "" ? "repetitions not set" : `${reps} repetitions`}`);
+  summary.addEventListener("click", () => openSetPicker(set, summary));
+  const remove = row.querySelector(".remove-set"); remove.setAttribute("aria-label", `Remove set ${index + 1} of ${exercise.name}`);
+  remove.addEventListener("click", () => { exercise.sets.splice(index, 1); saveState(); render(); }); return row;
 }
 
 function renderHistory() {
@@ -66,19 +75,59 @@ function openHistory() {
 function closeHistory() { historyDrawer.classList.remove("open"); historyBackdrop.classList.add("hidden"); historyDrawer.setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
 function showToast(message) { const toast = $("#toast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(toastTimeout); toastTimeout = setTimeout(() => toast.classList.remove("show"), 2400); }
 
-$("#historyButton").addEventListener("click", openHistory); $("#closeHistoryButton").addEventListener("click", closeHistory); historyBackdrop.addEventListener("click", closeHistory);
-$("#exportButton").addEventListener("click", () => {
-  saveState(); const backup = { app: "Rep Routine", version: 5, exportedAt: new Date().toISOString(), data: state };
+function buildWheel(wheel, values) {
+  wheel._values = values; wheel._scrollTimeout = null;
+  wheel.replaceChildren(...values.map((value, index) => {
+    const option = document.createElement("button"); option.type = "button"; option.className = "wheel-option"; option.dataset.index = index;
+    option.textContent = value || "—"; option.tabIndex = -1; option.setAttribute("role", "option"); option.setAttribute("aria-selected", "false"); return option;
+  }));
+  wheel.addEventListener("scroll", () => {
+    clearTimeout(wheel._scrollTimeout); wheel._scrollTimeout = setTimeout(() => selectWheelIndex(wheel, Math.round(wheel.scrollTop / 44)), 60);
+  });
+  wheel.addEventListener("click", event => { const option = event.target.closest(".wheel-option"); if (option) selectWheelIndex(wheel, Number(option.dataset.index), "smooth"); });
+  wheel.addEventListener("keydown", event => {
+    if (!["ArrowUp", "ArrowDown"].includes(event.key)) return; event.preventDefault();
+    selectWheelIndex(wheel, Number(wheel.dataset.index || 0) + (event.key === "ArrowDown" ? 1 : -1), "smooth");
+  });
+}
+function selectWheelIndex(wheel, requestedIndex, behavior = "auto") {
+  const index = Math.min(Math.max(requestedIndex, 0), wheel._values.length - 1); wheel.dataset.index = index; wheel.dataset.value = wheel._values[index];
+  wheel.querySelectorAll(".wheel-option").forEach((option, optionIndex) => { const selected = optionIndex === index; option.classList.toggle("selected", selected); option.setAttribute("aria-selected", String(selected)); });
+  wheel.scrollTo({ top: index * 44, behavior });
+}
+function setWheelValue(wheel, value) {
+  let index = wheel._values.indexOf(String(value ?? ""));
+  if (index < 0) { const number = Number(value); index = Number.isFinite(number) ? wheel._values.reduce((best, item, itemIndex) => Math.abs(Number(item) - number) < Math.abs(Number(wheel._values[best]) - number) ? itemIndex : best, 1) : 0; }
+  selectWheelIndex(wheel, index);
+}
+function openSetPicker(set, returnFocus) {
+  editingSet = set; pickerReturnFocus = returnFocus; const dialog = $("#setPickerDialog"); dialog.showModal();
+  requestAnimationFrame(() => { setWheelValue($("#weightWheel"), set.weight); setWheelValue($("#repsWheel"), set.reps); });
+}
+function backupTimestamp(date) {
+  return `${toDateKey(date)}-${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}`;
+}
+function downloadBackup(automatic = false) {
+  saveState(); const now = new Date(); const data = compactLatestState(state);
+  const backup = { app: "Rep Routine", version: 5, exportedAt: now.toISOString(), historyMode: "latest-per-exercise", data };
   const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-  link.download = `rep-routine-backup-${toDateKey(today)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); showToast("Workout data exported");
-});
+  link.download = `rep-routine-${automatic ? "friday-" : ""}backup-${backupTimestamp(now)}.json`; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000); showToast(automatic ? "Friday backup downloaded" : "Latest workout data exported");
+}
+function checkFridayAutoBackup() {
+  const now = new Date(); const dateKey = toDateKey(now); if (now.getDay() !== 5 || localStorage.getItem(AUTO_BACKUP_KEY) === dateKey) return;
+  downloadBackup(true); localStorage.setItem(AUTO_BACKUP_KEY, dateKey);
+}
+
+$("#historyButton").addEventListener("click", openHistory); $("#closeHistoryButton").addEventListener("click", closeHistory); historyBackdrop.addEventListener("click", closeHistory);
+$("#exportButton").addEventListener("click", () => downloadBackup());
 $("#importButton").addEventListener("click", () => $("#importFile").click());
 $("#importFile").addEventListener("change", async event => {
   const file = event.target.files[0]; if (!file) return;
   try {
     const parsed = JSON.parse(await file.text()); const imported = normalizeImportedState(parsed.data || parsed);
-    if (!confirm("Replace the workout data in this browser with the imported backup?")) return;
-    imported.selectedDate = defaultSelectedDate(); replaceState(imported); getSession(); saveState(); render(); showToast("Backup imported and this week is ready");
+    if (!confirm("Replace the workout data in this browser? Only the latest performance for each exercise will be retained; dated history will not be fully restored.")) return;
+    imported.selectedDate = defaultSelectedDate(); replaceState(imported); getSession(); syncSelectedSessionToPlan(); saveState(); render(); showToast("Latest exercise data imported");
   } catch { alert("This file is not a valid Rep Routine JSON backup."); } finally { event.target.value = ""; }
 });
 $("#resetWeekButton").addEventListener("click", () => {
@@ -88,5 +137,12 @@ $("#resetWeekButton").addEventListener("click", () => {
 
 manager = initManager({ closeHistory, renderApp: render, showToast });
 initTimer();
+buildWheel($("#weightWheel"), weightValues); buildWheel($("#repsWheel"), repValues);
+$("#closeSetPickerButton").addEventListener("click", () => $("#setPickerDialog").close());
+$("#setPickerDoneButton").addEventListener("click", () => {
+  if (!editingSet) return; editingSet.weight = $("#weightWheel").dataset.value; editingSet.reps = $("#repsWheel").dataset.value; saveState(); $("#setPickerDialog").close(); render();
+});
+$("#setPickerDialog").addEventListener("close", () => { editingSet = null; pickerReturnFocus?.focus(); pickerReturnFocus = null; });
 document.addEventListener("keydown", event => { if (event.key === "Escape") { closeHistory(); if (manager.isOpen()) manager.closeManage(); } });
 render();
+setTimeout(checkFridayAutoBackup, 700);
