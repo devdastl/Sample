@@ -1,4 +1,4 @@
-import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, startOfDay, toDateKey } from "./core.js?v=20260903-2";
+import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260903-2";
 import { saveState, state } from "./storage.js?v=20260903-2";
 
 export function programWeek(dateKey) {
