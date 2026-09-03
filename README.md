@@ -1,6 +1,6 @@
 # Rep Routine
 
-Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pull–Push–Legs–Pull–Push routine. It runs in the browser with no compilation, framework, account, or backend.
+Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pull–Push–Legs–Pull–Push routine. It is an installable PWA that runs with no compilation, framework, account, or backend.
 
 ## Quick start
 
@@ -13,6 +13,24 @@ Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pull�
 7. Export a JSON backup after important updates.
 
 Everything is saved automatically in the browser while you type.
+
+## Install and use offline
+
+Visit the deployed app once while online. In Chrome or Samsung Internet, choose **Install app** or **Add to Home screen** from the browser menu. When the browser offers an in-app install action, it also appears at the bottom of **Manage**.
+
+After the first online setup completes, Rep Routine can reopen from its app icon without a connection. The full interface, workouts, notes, history, backups, and rest timer remain available offline. An export still downloads to the phone normally; importing still requires selecting a backup file.
+
+The unobtrusive version number at the bottom of the workout screen shows the running release. **Manage → App status** reports whether offline access is ready.
+
+### Safe application updates
+
+While online, Rep Routine checks for a newer deployed release in the background. It downloads the complete application shell and shows **Update available** only after that release is ready.
+
+- Choose **Later** to keep the current version running for the workout.
+- Choose **Update** to switch versions and reload.
+- Updates wait while a rest timer, editor, drawer, or another Rep Routine window is open.
+- Application updates replace cached code only. They do not clear workout data in browser storage.
+- If a new release cannot finish downloading, the last complete offline version continues to work.
 
 ## Weekly routine
 
@@ -100,6 +118,8 @@ The latest eligible exercise remains active until another replacement is schedul
 
 Mobile browsers may suspend background pages and block sound or vibration while the phone is locked. A normal website cannot guarantee a locked-screen alarm.
 
+Timer-completion system notifications are planned for PWA release 2. Release 1 intentionally retains the existing beep and vibration behavior.
+
 ### Backup and restore
 
 - **Export** downloads a compact JSON backup containing the Exercise Library, weekday plans, rotations, tags, notes, and only the latest recorded sets for each exercise.
@@ -130,20 +150,24 @@ Then open `http://localhost:8000`.
 3. Choose the `main` branch and repository root as the publishing source.
 4. Save and wait for the Pages deployment to finish.
 
-The application uses relative asset paths and requires no deployment configuration.
+The application uses project-relative paths, so it works from a GitHub Pages repository subpath and requires no deployment configuration.
 
-When CSS or JavaScript changes, update the shared version query in `index.html` and the imports inside `js/` so mobile browsers fetch a consistent set of assets after deployment.
+For each release, update the application version and shell cache in `sw.js`, the version in `js/pwa.js`, and the shared asset query in `index.html` and `js/`. Keeping these values together lets installed phones download and switch to one consistent release.
 
 ## Project structure
 
 ```text
 index.html       Application structure and templates
 styles.css       Mobile-first layout and visual styling
+manifest.webmanifest  Install identity, display mode, theme, and icon metadata
+sw.js            Offline application shell and safe update lifecycle
+icons/           Standard and maskable installation icons
 js/core.js       Schedule, date, formatting, and shared browser helpers
 js/storage.js    Data schema, validation, migrations, import preparation, and persistence
 js/workouts.js   Sessions, rotations, Exercise Library, and progressive-overload rules
 js/manager.js    Workout Plan, Exercise Library, scheduled rotation, and tag management UI
 js/timer.js      Rest timer, ten-beep alarm, and vibration behavior
+js/pwa.js        Installation, offline status, and user-controlled update UI
 js/app.js        Workout rendering, history, backups, and application startup
 README.md        Feature reference and startup guide
 ```

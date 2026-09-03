@@ -1,4 +1,4 @@
-import { $ } from "./core.js?v=20260903-5";
+import { $ } from "./core.js?v=20260904-1";
 
 export function initTimer() {
   const display = $("#timerDisplay"); const toggle = $("#timerToggle"); const customForm = $("#customTimerForm");
@@ -49,4 +49,5 @@ export function initTimer() {
   $("#customTimerButton").addEventListener("click", () => { customForm.classList.toggle("hidden"); if (!customForm.classList.contains("hidden")) $("#customSeconds").focus(); });
   customForm.addEventListener("submit", event => { event.preventDefault(); const seconds = Number($("#customSeconds").value); if (!Number.isInteger(seconds) || seconds < 1 || seconds > 3600) return; selectTimer(seconds); customForm.reset(); customForm.classList.add("hidden"); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden && timer.intervalId) tick(); }); updateDisplay();
+  return { isActive: () => Boolean(timer.intervalId) };
 }
