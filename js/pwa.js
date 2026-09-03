@@ -1,6 +1,6 @@
-import { $ } from "./core.js?v=20260904-2";
+import { $ } from "./core.js?v=20260904-3";
 
-export const APP_VERSION = "1.0.1";
+export const APP_VERSION = "2.0.0";
 
 function requestWorkerUpdate(worker) {
   return new Promise(resolve => {
@@ -18,11 +18,52 @@ export function initPwa({ canApplyUpdate }) {
   const banner = $("#updateBanner");
   const message = $("#updateMessage");
   const applyButton = $("#applyUpdateButton");
+  const notificationStatus = $("#notificationStatusText");
+  const notificationButton = $("#notificationButton");
   let installPrompt = null;
   let waitingWorker = null;
   let reloading = false;
   let installed = window.matchMedia("(display-mode: standalone)").matches || Boolean(navigator.standalone);
   const hadController = Boolean(navigator.serviceWorker?.controller);
+  const supportsNotifications = "Notification" in window && "serviceWorker" in navigator
+    && "ServiceWorkerRegistration" in window && "showNotification" in ServiceWorkerRegistration.prototype;
+
+  const showSystemNotification = async (title, body, tag) => {
+    if (!supportsNotifications || Notification.permission !== "granted") return false;
+    const registration = await navigator.serviceWorker.getRegistration("./");
+    if (!registration?.active) return false;
+    const base = registration.scope;
+    await registration.showNotification(title, {
+      body,
+      icon: new URL("icons/icon-192.png", base).href,
+      tag,
+      renotify: true,
+      timestamp: Date.now(),
+      data: { url: base },
+    });
+    return true;
+  };
+  const showTimerCompletionNotification = () => showSystemNotification(
+    "Rest finished",
+    "Ready for your next set.",
+    "rep-routine-rest-finished",
+  );
+  const updateNotificationStatus = () => {
+    if (!supportsNotifications) {
+      notificationStatus.textContent = "System notifications are not supported by this browser.";
+      notificationButton.textContent = "Unavailable"; notificationButton.disabled = true; return;
+    }
+    if (Notification.permission === "granted") {
+      notificationStatus.textContent = "Enabled · uses your phone's notification sound and vibration settings.";
+      notificationButton.textContent = "Test alert"; notificationButton.disabled = false; return;
+    }
+    if (Notification.permission === "denied") {
+      notificationStatus.textContent = "Blocked · allow Rep Routine notifications in your browser or app settings.";
+      notificationButton.textContent = "Blocked"; notificationButton.disabled = true; return;
+    }
+    notificationStatus.textContent = "Enable one alert when a rest timer finishes.";
+    notificationButton.textContent = "Enable alerts"; notificationButton.disabled = false;
+  };
 
   version.textContent = APP_VERSION;
   const updateConnectionStatus = () => {
@@ -43,6 +84,7 @@ export function initPwa({ canApplyUpdate }) {
 
   window.addEventListener("online", updateConnectionStatus);
   window.addEventListener("offline", updateConnectionStatus);
+  window.addEventListener("focus", updateNotificationStatus);
   window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault(); installPrompt = event; installButton.classList.remove("hidden");
   });
@@ -52,6 +94,25 @@ export function initPwa({ canApplyUpdate }) {
     installButton.disabled = true; await installPrompt.prompt(); const choice = await installPrompt.userChoice;
     installPrompt = null; installButton.classList.add("hidden"); installButton.disabled = false;
     status.textContent = choice.outcome === "accepted" ? "Installing…" : "Install canceled. You can use the browser menu later.";
+  });
+  notificationButton.addEventListener("click", async () => {
+    if (!supportsNotifications) return;
+    notificationButton.disabled = true;
+    try {
+      if (Notification.permission === "default") await Notification.requestPermission();
+      updateNotificationStatus();
+      if (Notification.permission !== "granted") return;
+      const shown = await showSystemNotification(
+        "Notifications ready",
+        "Rep Routine can alert you when rest finishes.",
+        "rep-routine-notification-test",
+      );
+      notificationStatus.textContent = shown ? "Test sent · adjust its sound and vibration in your phone settings." : "The test could not be shown. Reopen the app and try again.";
+    } catch {
+      notificationStatus.textContent = "The notification test failed. Check the app permission and try again.";
+    } finally {
+      notificationButton.disabled = Notification.permission === "denied";
+    }
   });
   $("#laterUpdateButton").addEventListener("click", () => banner.classList.add("hidden"));
   applyButton.addEventListener("click", async () => {
@@ -64,8 +125,8 @@ export function initPwa({ canApplyUpdate }) {
     message.textContent = "Updating…";
   });
 
-  updateConnectionStatus();
-  if (!("serviceWorker" in navigator)) return;
+  updateConnectionStatus(); updateNotificationStatus();
+  if (!("serviceWorker" in navigator)) return { showTimerCompletionNotification };
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     updateConnectionStatus();
     if (hadController && reloading) window.location.reload();
@@ -79,4 +140,5 @@ export function initPwa({ canApplyUpdate }) {
       window.setTimeout(() => registration.update().catch(() => {}), 1500);
     } catch { status.textContent = navigator.onLine ? "Offline setup failed. Reload while online to retry." : "Offline setup needs one successful online visit."; }
   });
+  return { showTimerCompletionNotification };
 }

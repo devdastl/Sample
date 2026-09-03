@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260904-2";
-import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-2";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-2";
-import { initManager } from "./manager.js?v=20260904-2";
-import { initTimer } from "./timer.js?v=20260904-2";
-import { initPwa } from "./pwa.js?v=20260904-2";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260904-3";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-3";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-3";
+import { initManager } from "./manager.js?v=20260904-3";
+import { initTimer } from "./timer.js?v=20260904-3";
+import { initPwa } from "./pwa.js?v=20260904-3";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");
@@ -163,17 +163,18 @@ $("#resetWeekButton").addEventListener("click", () => {
 });
 
 manager = initManager({ closeHistory, renderApp: render, showToast });
-const timer = initTimer();
-initPwa({
+let timer;
+const pwa = initPwa({
   canApplyUpdate: () => {
     try { saveState(); } catch { return "Workout changes could not be saved. Export a backup before updating."; }
-    if (timer.isActive()) return "Pause or finish the rest timer before updating.";
+    if (timer?.isActive()) return "Pause or finish the rest timer before updating.";
     if (manager.isOpen() || historyDrawer.classList.contains("open") || document.querySelector("dialog[open]") || !$("#customTimerForm").classList.contains("hidden")) {
       return "Close open editors and panels before updating.";
     }
     return "";
   },
 });
+timer = initTimer({ onComplete: pwa.showTimerCompletionNotification });
 buildWheel($("#weightWheel"), weightValues); buildWheel($("#repsWheel"), repValues);
 $("#closeSetPickerButton").addEventListener("click", () => $("#setPickerDialog").close());
 $("#setPickerDoneButton").addEventListener("click", () => {

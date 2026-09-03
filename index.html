@@ -11,7 +11,7 @@
     <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260904-2" />
+    <link rel="stylesheet" href="styles.css?v=20260904-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -47,7 +47,7 @@
         <button class="add-exercise-button" id="openManageFromWorkout" type="button">⚙ Manage workout plan</button>
       </main>
 
-      <footer class="app-version" aria-label="Application version">Rep Routine <span id="appVersion">1.0.1</span></footer>
+      <footer class="app-version" aria-label="Application version">Rep Routine <span id="appVersion">2.0.0</span></footer>
     </div>
 
     <section class="pwa-banner hidden" id="updateBanner" aria-labelledby="updateTitle">
@@ -120,6 +120,14 @@
             <p id="pwaStatusText">Checking offline access…</p>
           </div>
           <button class="small-primary-button hidden" id="installAppButton" type="button">Install</button>
+        </section>
+        <section class="pwa-status-card" aria-labelledby="notificationStatusTitle">
+          <div>
+            <p class="eyebrow">Rest timer</p>
+            <h3 id="notificationStatusTitle">Completion notification</h3>
+            <p id="notificationStatusText">Checking notification support…</p>
+          </div>
+          <button class="small-primary-button" id="notificationButton" type="button">Enable alerts</button>
         </section>
       </div>
     </aside>
@@ -196,7 +204,7 @@
 
     <aside class="timer-panel" id="timerPanel" aria-label="Rest timer">
       <div class="timer-copy">
-        <p class="eyebrow">Rest timer</p>
+        <p class="eyebrow" id="timerLabel">Rest timer</p>
         <p class="timer-display" id="timerDisplay" aria-live="polite">01:00</p>
       </div>
       <div class="timer-controls">
@@ -267,6 +275,6 @@
       </div>
     </template>
 
-    <script type="module" src="js/app.js?v=20260904-2"></script>
+    <script type="module" src="js/app.js?v=20260904-3"></script>
   </body>
 </html>

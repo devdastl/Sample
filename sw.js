@@ -1,18 +1,18 @@
-const VERSION = "1.0.1";
+const VERSION = "2.0.0";
 const CACHE_PREFIX = "rep-routine-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./styles.css?v=20260904-2",
-  "./js/core.js?v=20260904-2",
-  "./js/storage.js?v=20260904-2",
-  "./js/workouts.js?v=20260904-2",
-  "./js/manager.js?v=20260904-2",
-  "./js/timer.js?v=20260904-2",
-  "./js/pwa.js?v=20260904-2",
-  "./js/app.js?v=20260904-2",
+  "./styles.css?v=20260904-3",
+  "./js/core.js?v=20260904-3",
+  "./js/storage.js?v=20260904-3",
+  "./js/workouts.js?v=20260904-3",
+  "./js/manager.js?v=20260904-3",
+  "./js/timer.js?v=20260904-3",
+  "./js/pwa.js?v=20260904-3",
+  "./js/app.js?v=20260904-3",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png"
@@ -50,5 +50,18 @@ self.addEventListener("message", event => {
     }
     event.ports[0].postMessage({ ok: true });
     return self.skipWaiting();
+  }));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const requestedUrl = event.notification.data?.url;
+  const targetUrl = typeof requestedUrl === "string" && requestedUrl.startsWith(self.registration.scope)
+    ? requestedUrl
+    : self.registration.scope;
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async clients => {
+    const appClient = clients.find(client => client.url.startsWith(self.registration.scope));
+    if (appClient) return appClient.focus();
+    return self.clients.openWindow(targetUrl);
   }));
 });

@@ -26,7 +26,7 @@ The unobtrusive version number at the bottom of the workout screen shows the run
 
 While online, Rep Routine checks for a newer deployed release in the background. It downloads the complete application shell and shows **Update available** only after that release is ready.
 
-- Choose **Later** to keep the current version running for the workout.
+- Choose **Later** to keep the current version running while that app window remains open. After every Rep Routine window closes, the browser may activate the ready update automatically.
 - Choose **Update** to switch versions and reload.
 - Updates wait while a rest timer, editor, drawer, or another Rep Routine window is open.
 - Application updates replace cached code only. They do not clear workout data in browser storage.
@@ -113,12 +113,15 @@ The latest eligible exercise remains active until another replacement is schedul
 - Quick presets for 60 and 120 seconds.
 - Custom durations from 1 to 3,600 seconds.
 - Pause and restart support.
-- Ten audible beeps and a vibration pattern when time expires.
+- One ordinary system notification when time expires: **Rest finished — Ready for your next set.**
+- A highlighted **Rest finished** state remains visible inside the app.
 - Timestamp-based counting keeps the displayed time accurate after returning from a background tab.
 
-Mobile browsers may suspend background pages and block sound or vibration while the phone is locked. A normal website cannot guarantee a locked-screen alarm.
+Enable alerts from **Manage → Completion notification**. The Enable action requests permission and immediately sends a test notification when permission is granted. Once enabled, **Test alert** can be used again whenever you want to check the phone's current sound and vibration settings.
 
-Timer-completion system notifications are planned for PWA release 2. Release 1 intentionally retains the existing beep and vibration behavior.
+Rep Routine leaves sound and vibration to the notification settings exposed by Android, Chrome, or the installed WebAPK. It does not play its own beeps or separately trigger vibration. If permission is blocked, allow notifications in the corresponding browser or app settings and return to Rep Routine.
+
+This is a local notification and requires no account, server, or remote push subscription. The notification can appear only after the running timer detects completion. Android may suspend a background page, so a deeply sleeping or locked phone can still delay the alert; this is not an exact native alarm. Alerts delayed by more than five minutes are treated as stale and are not shown later.
 
 ### Backup and restore
 
@@ -166,8 +169,8 @@ js/core.js       Schedule, date, formatting, and shared browser helpers
 js/storage.js    Data schema, validation, migrations, import preparation, and persistence
 js/workouts.js   Sessions, rotations, Exercise Library, and progressive-overload rules
 js/manager.js    Workout Plan, Exercise Library, scheduled rotation, and tag management UI
-js/timer.js      Rest timer, ten-beep alarm, and vibration behavior
-js/pwa.js        Installation, offline status, and user-controlled update UI
+js/timer.js      Rest timer, visible completion state, and notification trigger
+js/pwa.js        Installation, updates, notification permission, and local alerts
 js/app.js        Workout rendering, history, backups, and application startup
 README.md        Feature reference and startup guide
 ```
