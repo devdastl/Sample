@@ -1,14 +1,12 @@
-import { $ } from "./core.js?v=20260904-4";
+import { $ } from "./core.js?v=20260904-5";
 
-const MAX_NOTIFICATION_DELAY_MS = 5 * 60 * 1000;
-
-export function initTimer({ onComplete = () => {} } = {}) {
+export function initTimer() {
   const display = $("#timerDisplay"); const toggle = $("#timerToggle"); const customForm = $("#customTimerForm");
-  const panel = $("#timerPanel"); const label = $("#timerLabel");
   const timer = { selectedSeconds: 60, remaining: 60, intervalId: null, endsAt: null };
+  let audioContext;
 
   function selectTimer(seconds) {
-    stopTimer(); setComplete(false); timer.selectedSeconds = seconds; timer.remaining = seconds;
+    stopTimer(); timer.selectedSeconds = seconds; timer.remaining = seconds;
     document.querySelectorAll(".timer-preset").forEach(button => button.classList.toggle("active", Number(button.dataset.seconds) === seconds)); updateDisplay();
   }
   function updateDisplay() {
@@ -17,7 +15,7 @@ export function initTimer({ onComplete = () => {} } = {}) {
     document.title = timer.intervalId ? `${display.textContent} · Rep Routine` : "Rep Routine";
   }
   function startTimer() {
-    setComplete(false); if (timer.remaining <= 0) timer.remaining = timer.selectedSeconds;
+    prepareAudio(); if (timer.remaining <= 0) timer.remaining = timer.selectedSeconds;
     timer.endsAt = Date.now() + timer.remaining * 1000; timer.intervalId = window.setInterval(tick, 250);
     toggle.textContent = "Pause"; toggle.classList.add("running"); tick();
   }
@@ -27,14 +25,23 @@ export function initTimer({ onComplete = () => {} } = {}) {
   }
   function tick() {
     timer.remaining = Math.max(0, Math.ceil((timer.endsAt - Date.now()) / 1000)); updateDisplay();
-    if (timer.remaining === 0) {
-      const lateByMs = Math.max(0, Date.now() - timer.endsAt); stopTimer(); toggle.textContent = "Again"; setComplete(true);
-      if (lateByMs <= MAX_NOTIFICATION_DELAY_MS) Promise.resolve(onComplete()).catch(() => {});
-    }
+    if (timer.remaining === 0) { stopTimer(); toggle.textContent = "Again"; playAlert(); }
   }
-  function setComplete(complete) {
-    panel.classList.toggle("complete", complete);
-    if (label) label.textContent = complete ? "Rest finished" : "Rest timer";
+  function playAlert() {
+    if (navigator.vibrate) navigator.vibrate([180, 90, 180, 90, 180]);
+    try {
+      const audio = prepareAudio();
+      Array.from({ length: 10 }, (_, index) => index * .3).forEach(delay => {
+        const oscillator = audio.createOscillator(); const gain = audio.createGain(); const start = audio.currentTime + delay;
+        oscillator.frequency.value = 920; oscillator.connect(gain); gain.connect(audio.destination);
+        gain.gain.setValueAtTime(.001, start); gain.gain.exponentialRampToValueAtTime(.24, start + .02); gain.gain.exponentialRampToValueAtTime(.001, start + .2);
+        oscillator.start(start); oscillator.stop(start + .22);
+      });
+    } catch {}
+  }
+  function prepareAudio() {
+    if (!audioContext) { const AudioContextClass = window.AudioContext || window.webkitAudioContext; audioContext = new AudioContextClass(); }
+    if (audioContext.state === "suspended") audioContext.resume(); return audioContext;
   }
 
   document.querySelectorAll(".timer-preset[data-seconds]").forEach(button => button.addEventListener("click", () => selectTimer(Number(button.dataset.seconds))));

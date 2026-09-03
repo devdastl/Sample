@@ -1,49 +1,49 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.2",
   "assets": [
     {
       "url": "./",
-      "sha256": "6c7988a67f47b786c6cf9c57c684102d8aef1146dd7227447a370bb90205ad98"
+      "sha256": "6ea2458aa36ed5c62378f1c55d4b52b4440ab02f390f30f986c2229309314dc1"
     },
     {
       "url": "./index.html",
-      "sha256": "6c7988a67f47b786c6cf9c57c684102d8aef1146dd7227447a370bb90205ad98"
+      "sha256": "6ea2458aa36ed5c62378f1c55d4b52b4440ab02f390f30f986c2229309314dc1"
     },
     {
       "url": "./manifest.webmanifest",
       "sha256": "a9d956ae8690e2eb26bc75a200b9ccb079b5de7a107e05ff90ccf4118f1998b0"
     },
     {
-      "url": "./styles.css?v=20260904-4",
-      "sha256": "fc5fc7a019e6f9d741e7baa74a66aa3c85d58a371a159246e9caa45b2c681d8c"
+      "url": "./styles.css?v=20260904-5",
+      "sha256": "a94e492e3a7218b6544a8f9c66ff5b9136eab6b4972a488037d7bb53de20d6bd"
     },
     {
-      "url": "./js/core.js?v=20260904-4",
+      "url": "./js/core.js?v=20260904-5",
       "sha256": "c30719eccb9f7758bbe0583a2683311a888384727fab61c332957e91df3afdac"
     },
     {
-      "url": "./js/storage.js?v=20260904-4",
-      "sha256": "2d3c641f6af3447f5ffd77a6014af45e66e82c9599451b3283c5d7b55c4b2430"
+      "url": "./js/storage.js?v=20260904-5",
+      "sha256": "8d6465c062700e95c6972a61ecaacf127a16605acf74e1e74cd50e25f17f20e3"
     },
     {
-      "url": "./js/workouts.js?v=20260904-4",
-      "sha256": "a3d96b694dac9689eb3f6b90ebd335e70937f43746b7e7083363e40fcb2e3b03"
+      "url": "./js/workouts.js?v=20260904-5",
+      "sha256": "33cfd792b3b4f5afd552c749aaf7baa1f50bbbe000a9eb0dd2a5592de3cc261d"
     },
     {
-      "url": "./js/manager.js?v=20260904-4",
-      "sha256": "39d5851551e86659486a381acc886167aac9166f6dce24fa6f64262e2207724c"
+      "url": "./js/manager.js?v=20260904-5",
+      "sha256": "62f7bed8eb85dd00f40f55e747c4766be981405aa02d291469a4555bb782eead"
     },
     {
-      "url": "./js/timer.js?v=20260904-4",
-      "sha256": "872a9ddb3bafba77e44fbb805641e92706399349071beb8e28ad98927e5722ab"
+      "url": "./js/timer.js?v=20260904-5",
+      "sha256": "d8b39b91977693f700533c2d8ee4cef80732d053c0ac76ba90b9f418851b8869"
     },
     {
-      "url": "./js/pwa.js?v=20260904-4",
-      "sha256": "5af4d9813ee3e0048565995e6f04d1676617dea24f02c0bff3df16cc0f87e924"
+      "url": "./js/pwa.js?v=20260904-5",
+      "sha256": "0c446cacdd12c47cc05f8d3cdd4ee13ed5965b9f9422c0c7df00a367c4e9ac02"
     },
     {
-      "url": "./js/app.js?v=20260904-4",
-      "sha256": "3f4cbb7be45d25f85b1ad3f12196967869702a351d0c595af7d21918972a9f10"
+      "url": "./js/app.js?v=20260904-5",
+      "sha256": "735c05b4d2108c5e2eefa97b4c2258cc31174d124fc90b943835e369d9b734f8"
     },
     {
       "url": "./icons/icon-192.png",

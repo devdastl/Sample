@@ -1,4 +1,4 @@
-const VERSION = "2.0.1";
+const VERSION = "2.0.2";
 const CACHE_PREFIX = "rep-routine-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 
@@ -57,18 +57,5 @@ self.addEventListener("message", event => {
     }
     event.ports[0].postMessage({ ok: true });
     return self.skipWaiting();
-  }));
-});
-
-self.addEventListener("notificationclick", event => {
-  event.notification.close();
-  const requestedUrl = event.notification.data?.url;
-  const targetUrl = typeof requestedUrl === "string" && requestedUrl.startsWith(self.registration.scope)
-    ? requestedUrl
-    : self.registration.scope;
-  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(async clients => {
-    const appClient = clients.find(client => client.url.startsWith(self.registration.scope));
-    if (appClient) return appClient.focus();
-    return self.clients.openWindow(targetUrl);
   }));
 });
