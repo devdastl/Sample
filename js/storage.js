@@ -1,7 +1,7 @@
 import {
   copyDefaultTags, currentWeek, dayForDate, defaultSelectedDate, defaultTags, emptyPlans,
   makeId, makeSession, normalizeName, schedule, toDateKey,
-} from "./core.js?v=20260904-5";
+} from "./core.js?v=20260904-6";
 
 const STORAGE_KEY = "rep-routine-v5";
 const V4_STORAGE_KEY = "rep-routine-v4";
@@ -148,6 +148,9 @@ function loadState() {
 function persistAndReturn(value) { localStorage.setItem(STORAGE_KEY, JSON.stringify(value)); return value; }
 
 export let state = loadState();
+// The selected workout is a view preference, not durable workout data. Always
+// begin a fresh app launch on the active weekday while preserving every session.
+state.selectedDate = defaultSelectedDate();
 export function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 export function replaceState(nextState) { state = nextState; }
 export function resetState() { state = createInitialState(); saveState(); return state; }

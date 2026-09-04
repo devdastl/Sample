@@ -1,4 +1,4 @@
-import { $ } from "./core.js?v=20260904-5";
+import { $ } from "./core.js?v=20260904-6";
 
 export function initTimer() {
   const display = $("#timerDisplay"); const toggle = $("#timerToggle"); const customForm = $("#customTimerForm");

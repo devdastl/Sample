@@ -14,6 +14,8 @@ Rep Routine is a lightweight, mobile-first workout tracker for a five-day Pullâ€
 
 Everything is saved automatically in the browser while you type.
 
+Each fresh app launch opens the active weekday automatically, even if you were reviewing another day or an older workout when you last closed it. On Saturday and Sunday, the app opens Monday's routine.
+
 ## Install and use offline
 
 Visit the deployed app once while online. In Chrome or Samsung Internet, choose **Install app** or **Add to Home screen** from the browser menu. When the browser offers an in-app install action, it also appears at the bottom of **Manage**.

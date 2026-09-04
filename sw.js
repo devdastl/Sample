@@ -1,4 +1,4 @@
-const VERSION = "2.0.2";
+const VERSION = "2.0.3";
 const CACHE_PREFIX = "rep-routine-shell-";
 const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 
