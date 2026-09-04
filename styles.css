@@ -181,7 +181,8 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 .quick-difficulty select { min-height: 34px; padding: 5px 25px 5px 8px; background-position: calc(100% - 12px) 13px, calc(100% - 7px) 13px; font-size: .66rem; }
 
 .set-list-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 9px; color: var(--muted); font-size: .64rem; }
-.set-list-heading > :first-child { font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.set-list-heading > * { font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.set-weight-heading.per-hand { color: var(--accent); }
 .sets-list { display: grid; gap: 7px; }
 .set-row {
   display: grid;
@@ -227,6 +228,8 @@ h2 { font-size: 1.6rem; letter-spacing: -0.03em; }
 }
 .weight-metric { color: var(--accent); }
 .set-unit { color: var(--muted); font-size: .6rem; font-weight: 600; letter-spacing: 0; }
+.weight-mode-badge { align-self: center; padding: 2px 4px; border-radius: 5px; background: var(--surface-raised); color: var(--muted); font-size: .43rem; font-weight: 850; letter-spacing: .06em; line-height: 1.2; text-transform: uppercase; }
+.weight-mode-badge.per-hand { border: 1px solid rgb(201 245 90 / 45%); background: rgb(201 245 90 / 7%); color: var(--accent); }
 .set-times { color: var(--muted); font-size: .78rem; opacity: .55; }
 .set-edit-icon { width: 12px; height: 12px; color: var(--muted); opacity: .6; }
 .set-metric.is-empty { color: var(--muted); opacity: .55; }

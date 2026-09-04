@@ -1,4 +1,4 @@
-import { $ } from "./core.js?v=20260904-6";
+import { $ } from "./core.js?v=20260904-7";
 
 export function initTimer() {
   const display = $("#timerDisplay"); const toggle = $("#timerToggle"); const customForm = $("#customTimerForm");
@@ -25,7 +25,7 @@ export function initTimer() {
   }
   function tick() {
     timer.remaining = Math.max(0, Math.ceil((timer.endsAt - Date.now()) / 1000)); updateDisplay();
-    if (timer.remaining === 0) { stopTimer(); toggle.textContent = "Again"; playAlert(); }
+    if (timer.remaining === 0) { stopTimer(); playAlert(); selectTimer(60); }
   }
   function playAlert() {
     if (navigator.vibrate) navigator.vibrate([180, 90, 180, 90, 180]);

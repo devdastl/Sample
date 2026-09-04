@@ -56,6 +56,7 @@ Each date is stored as a separate workout session, so changing a future workout 
 - Add or remove any number of sets.
 - Choose weight and repetitions with a touch-friendly dual wheel: 0–100 kg in 0.5 kg steps and 1–30 reps.
 - Saved sets appear as compact **weight × reps** rows. Tap anywhere on the value row to edit both values; the separate trash button removes the set.
+- Classify an exercise's weight as **Per hand** or **Total load** in the Exercise Library. Set rows, headings, and the weight picker then show that meaning explicitly; existing exercises remain safely unclassified until selected.
 - Save one shared note per exercise for machine settings, grip, form cues, or other reminders.
 - Expand an exercise card and tap the note icon between its type tag and difficulty dropdown to add or edit its note without opening Manage. The icon turns lime when a note exists, and changes autosave as you type.
 - During the current week, quick notes update the shared library note and that exercise's current-week cards. Notes edited in older history affect only that dated workout, preserving other snapshots.
@@ -79,6 +80,8 @@ When a new dated workout is opened, Rep Routine finds the latest earlier perform
 Progress is shared across weekdays. If Lat Pulldown is performed on Monday and Thursday, Thursday starts with Monday's latest numbers, and the following Monday starts with Thursday's latest numbers.
 
 Different exercises used in scheduled rotations maintain separate performance histories.
+
+When today's or a future workout is opened, its dated session is reconciled with the workout plan. Missing planned exercises are restored in plan order without overwriting weights, reps, notes, or difficulty already recorded. Completed past workouts remain unchanged.
 
 ### Tags
 
@@ -115,6 +118,7 @@ The latest eligible exercise remains active until another replacement is schedul
 - Quick presets for 60 and 120 seconds.
 - Custom durations from 1 to 3,600 seconds.
 - Pause and restart support.
+- After a timer finishes, the default automatically returns to one minute so the next quick start cannot accidentally reuse a two-minute exercise break.
 - Ten audible beeps and a vibration attempt when time expires.
 - Timestamp-based counting keeps the displayed time accurate after returning from a background tab.
 

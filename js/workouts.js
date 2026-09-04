@@ -1,5 +1,5 @@
-import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey } from "./core.js?v=20260904-6";
-import { saveState, state } from "./storage.js?v=20260904-6";
+import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey, weightModes } from "./core.js?v=20260904-7";
+import { saveState, state } from "./storage.js?v=20260904-7";
 
 export function programWeek(dateKey) {
   const difference = startOfDay(fromDateKey(dateKey)) - startOfDay(fromDateKey(state.programStartDate));
@@ -24,7 +24,7 @@ export function exerciseFromSlot(slot, dateKey) {
   const previous = latestPerformance(definition.id, dateKey);
   return {
     id: makeId(), slotId: slot.id, libraryExerciseId: definition.id, name: definition.name,
-    typeTagId: definition.typeTagId, difficultyTagId: "", note: definition.note,
+    typeTagId: definition.typeTagId, weightMode: definition.weightMode, difficultyTagId: "", note: definition.note,
     sets: previous ? previous.sets.map(set => ({ id: makeId(), weight: set.weight, reps: set.reps })) : [],
   };
 }
@@ -38,7 +38,7 @@ export function getSession(dateKey = state.selectedDate) {
 }
 export function isCurrentWeekDate(dateKey) { return currentWeek.some(date => toDateKey(date) === dateKey); }
 export function syncDefinitionToCurrentSessions(definition) {
-  Object.values(state.sessions).filter(session => isCurrentWeekDate(session.date)).forEach(session => session.exercises.filter(item => item.libraryExerciseId === definition.id).forEach(item => { item.name = definition.name; item.typeTagId = definition.typeTagId; item.note = definition.note; }));
+  Object.values(state.sessions).filter(session => isCurrentWeekDate(session.date)).forEach(session => session.exercises.filter(item => item.libraryExerciseId === definition.id).forEach(item => { item.name = definition.name; item.typeTagId = definition.typeTagId; item.weightMode = definition.weightMode; item.note = definition.note; }));
 }
 export function updateExerciseNote(exercise, note) {
   const value = String(note ?? "").slice(0, 500); const definition = libraryExercise(exercise.libraryExerciseId);
@@ -62,7 +62,7 @@ export function syncSelectedSessionToPlan() {
 }
 export function createLibraryExercise(name) {
   const existing = state.library.find(item => normalizeName(item.name) === normalizeName(name)); if (existing) return existing;
-  const exercise = { id: makeId(), name: name.trim().slice(0, 50), typeTagId: "", note: "", archived: false };
+  const exercise = { id: makeId(), name: name.trim().slice(0, 50), typeTagId: "", weightMode: "", note: "", archived: false };
   state.library.push(exercise); saveState(); return exercise;
 }
 export function tagById(group, id) { return state.tags[group].find(tag => tag.id === id); }
@@ -70,4 +70,9 @@ export function fillTagSelect(select, group, selectedId) {
   select.replaceChildren(new Option(group === "type" ? "Not classified" : "Difficulty", ""));
   state.tags[group].forEach(tag => select.add(new Option(tag.label, tag.id)));
   select.value = state.tags[group].some(tag => tag.id === selectedId) ? selectedId : "";
+}
+export function fillWeightModeSelect(select, selectedId) {
+  select.replaceChildren(new Option("Not specified", ""));
+  weightModes.forEach(mode => select.add(new Option(mode.label, mode.id)));
+  select.value = weightModes.some(mode => mode.id === selectedId) ? selectedId : "";
 }

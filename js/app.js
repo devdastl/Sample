@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, toDateKey } from "./core.js?v=20260904-6";
-import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-6";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-6";
-import { initManager } from "./manager.js?v=20260904-6";
-import { initTimer } from "./timer.js?v=20260904-6";
-import { initPwa } from "./pwa.js?v=20260904-6";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, today, toDateKey, weightModeById } from "./core.js?v=20260904-7";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-7";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-7";
+import { initManager } from "./manager.js?v=20260904-7";
+import { initTimer } from "./timer.js?v=20260904-7";
+import { initPwa } from "./pwa.js?v=20260904-7";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");
@@ -15,13 +15,18 @@ const repValues = ["", ...Array.from({ length: 30 }, (_, index) => String(index 
 let editingSet = null; let pickerReturnFocus = null;
 let editingNoteExercise = null; let noteReturnFocus = null;
 
+function syncSelectedPlanIfUpcoming() {
+  if (!isCurrentWeekDate(state.selectedDate) || state.selectedDate < toDateKey(today)) return false;
+  syncSelectedSessionToPlan(); return true;
+}
+
 function render() {
   const session = getSession();
   dayTabs.replaceChildren(...schedule.map((day, index) => {
     const dateKey = toDateKey(currentWeek[index]); const button = document.createElement("button"); button.type = "button";
     button.className = `day-tab${dateKey === state.selectedDate ? " active" : ""}`; button.innerHTML = `${day.short}<span>${day.workout}</span>`;
     button.setAttribute("aria-label", `${day.label}, ${formatDate(dateKey, "short")}, ${day.workout} workout`); button.setAttribute("aria-pressed", String(dateKey === state.selectedDate));
-    button.addEventListener("click", () => { state.selectedDate = dateKey; expandedExerciseId = null; saveState(); render(); if (manager?.isOpen()) manager.renderManage(); }); return button;
+    button.addEventListener("click", () => { state.selectedDate = dateKey; expandedExerciseId = null; if (!syncSelectedPlanIfUpcoming()) saveState(); render(); if (manager?.isOpen()) manager.renderManage(); }); return button;
   }));
   const selectedDate = fromDateKey(session.date); dayLabel.textContent = selectedDate.toLocaleDateString(undefined, { weekday: "long" });
   dateLabel.textContent = formatDate(session.date, "long"); dateLabel.dateTime = session.date; workoutTitle.textContent = `${session.workout} day`;
@@ -40,10 +45,12 @@ function updateCardMeta(card, exercise) {
 }
 function renderExercise(exercise, exerciseIndex) {
   const card = $("#exerciseTemplate").content.firstElementChild.cloneNode(true); const definition = libraryExercise(exercise.libraryExerciseId);
-  if (definition && isCurrentWeekDate(state.selectedDate)) { exercise.name = definition.name; exercise.typeTagId = definition.typeTagId; exercise.note = definition.note; }
+  if (definition && isCurrentWeekDate(state.selectedDate)) { exercise.name = definition.name; exercise.typeTagId = definition.typeTagId; exercise.weightMode = definition.weightMode; exercise.note = definition.note; }
   card.dataset.exerciseId = exercise.id; card.querySelector(".exercise-number").textContent = String(exerciseIndex + 1).padStart(2, "0"); card.querySelector(".exercise-name").textContent = exercise.name;
   const slot = state.plans[dayForDate(state.selectedDate).key].find(item => item.id === exercise.slotId); const replacements = Math.max(0, (slot?.schedule.length || 1) - 1); const variationCount = card.querySelector(".variation-count");
   variationCount.textContent = `${replacements} ${replacements === 1 ? "rotation" : "rotations"}`; variationCount.classList.toggle("hidden", replacements === 0); updateCardMeta(card, exercise);
+  const weightMode = weightModeById(exercise.weightMode); const weightHeading = card.querySelector(".set-weight-heading");
+  weightHeading.textContent = weightMode?.heading || "Weight"; weightHeading.classList.toggle("per-hand", weightMode?.id === "per-hand");
   const noteButton = card.querySelector(".exercise-note-button"); noteButton.addEventListener("click", () => openNoteEditor(exercise, noteButton));
   const collapseButton = card.querySelector(".exercise-collapse"); const body = card.querySelector(".exercise-body"); setCardExpanded(card, expandedExerciseId === exercise.id);
   collapseButton.addEventListener("click", () => { const open = body.classList.contains("hidden"); document.querySelectorAll(".exercise-card.open").forEach(item => setCardExpanded(item, false)); expandedExerciseId = open ? exercise.id : null; setCardExpanded(card, open); });
@@ -54,12 +61,14 @@ function renderExercise(exercise, exerciseIndex) {
 function setCardExpanded(card, expanded) { card.classList.toggle("open", expanded); card.querySelector(".exercise-body").classList.toggle("hidden", !expanded); card.querySelector(".exercise-collapse").setAttribute("aria-expanded", String(expanded)); }
 function renderSet(exercise, set, index) {
   const row = $("#setTemplate").content.firstElementChild.cloneNode(true); row.querySelector(".set-number").textContent = String(index + 1).padStart(2, "0");
-  const weight = String(set.weight ?? ""); const reps = String(set.reps ?? ""); const summary = row.querySelector(".set-summary-button");
+  const weight = String(set.weight ?? ""); const reps = String(set.reps ?? ""); const summary = row.querySelector(".set-summary-button"); const weightMode = weightModeById(exercise.weightMode);
   row.querySelector(".weight-value").textContent = weight || "—"; row.querySelector(".reps-value").textContent = reps || "—";
+  const weightModeBadge = row.querySelector(".weight-mode-badge"); weightModeBadge.textContent = weightMode?.shortLabel || "";
+  weightModeBadge.classList.toggle("hidden", !weightMode || weight === ""); weightModeBadge.classList.toggle("per-hand", weightMode?.id === "per-hand");
   row.querySelector(".weight-metric").classList.toggle("is-empty", weight === ""); row.querySelector(".reps-metric").classList.toggle("is-empty", reps === "");
   row.classList.toggle("is-empty", weight === "" && reps === "");
-  summary.setAttribute("aria-label", `Edit ${exercise.name}, set ${index + 1}: ${weight === "" ? "weight not set" : `${weight} kilograms`}, ${reps === "" ? "repetitions not set" : `${reps} repetitions`}`);
-  summary.addEventListener("click", () => openSetPicker(set, summary));
+  summary.setAttribute("aria-label", `Edit ${exercise.name}, set ${index + 1}: ${weight === "" ? "weight not set" : `${weight} kilograms${weightMode ? `, ${weightMode.label.toLowerCase()}` : ""}`}, ${reps === "" ? "repetitions not set" : `${reps} repetitions`}`);
+  summary.addEventListener("click", () => openSetPicker(set, exercise, summary));
   const remove = row.querySelector(".remove-set"); remove.setAttribute("aria-label", `Remove set ${index + 1} of ${exercise.name}`);
   remove.addEventListener("click", () => { exercise.sets.splice(index, 1); saveState(); render(); }); return row;
 }
@@ -127,8 +136,10 @@ function setWheelValue(wheel, value) {
   if (index < 0) { const number = Number(value); index = Number.isFinite(number) ? wheel._values.reduce((best, item, itemIndex) => Math.abs(Number(item) - number) < Math.abs(Number(wheel._values[best]) - number) ? itemIndex : best, 1) : 0; }
   selectWheelIndex(wheel, index);
 }
-function openSetPicker(set, returnFocus) {
+function openSetPicker(set, exercise, returnFocus) {
   editingSet = set; pickerReturnFocus = returnFocus; const dialog = $("#setPickerDialog"); dialog.showModal();
+  const weightMode = weightModeById(exercise.weightMode); $("#weightWheelLabel").textContent = weightMode?.pickerLabel || "Weight (kg)";
+  $("#weightWheel").setAttribute("aria-label", weightMode?.pickerLabel || "Weight in kilograms");
   requestAnimationFrame(() => { setWheelValue($("#weightWheel"), set.weight); setWheelValue($("#repsWheel"), set.reps); });
 }
 function backupTimestamp(date) {
@@ -185,5 +196,6 @@ $("#closeNoteDialogButton").addEventListener("click", () => $("#noteDialog").clo
 $("#doneNoteButton").addEventListener("click", () => $("#noteDialog").close());
 $("#noteDialog").addEventListener("close", () => { editingNoteExercise = null; if (noteReturnFocus?.isConnected) noteReturnFocus.focus(); noteReturnFocus = null; });
 document.addEventListener("keydown", event => { if (event.key === "Escape") { closeHistory(); if (manager.isOpen()) manager.closeManage(); } });
+syncSelectedPlanIfUpcoming();
 render();
 setTimeout(checkFridayAutoBackup, 700);

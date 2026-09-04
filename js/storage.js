@@ -1,7 +1,7 @@
 import {
   copyDefaultTags, currentWeek, dayForDate, defaultSelectedDate, defaultTags, emptyPlans,
-  makeId, makeSession, normalizeName, schedule, toDateKey,
-} from "./core.js?v=20260904-6";
+  makeId, makeSession, normalizeName, schedule, toDateKey, weightModeById,
+} from "./core.js?v=20260904-7";
 
 const STORAGE_KEY = "rep-routine-v5";
 const V4_STORAGE_KEY = "rep-routine-v4";
@@ -26,7 +26,8 @@ function copyMetadata(candidate, normalized) {
   }
 }
 function normalizeLibraryExercise(exercise) {
-  return { id: String(exercise?.id || makeId()), name: String(exercise?.name || "Untitled exercise").slice(0, 50), typeTagId: String(exercise?.typeTagId || ""), note: String(exercise?.note || "").slice(0, 500), archived: Boolean(exercise?.archived) };
+  const weightMode = String(exercise?.weightMode || "");
+  return { id: String(exercise?.id || makeId()), name: String(exercise?.name || "Untitled exercise").slice(0, 50), typeTagId: String(exercise?.typeTagId || ""), weightMode: weightModeById(weightMode)?.id || "", note: String(exercise?.note || "").slice(0, 500), archived: Boolean(exercise?.archived) };
 }
 function normalizeSlot(slot) {
   return {
@@ -35,9 +36,10 @@ function normalizeSlot(slot) {
   };
 }
 function normalizeSessionExercise(exercise) {
+  const weightMode = String(exercise?.weightMode || "");
   return {
     id: String(exercise?.id || makeId()), slotId: String(exercise?.slotId || ""), libraryExerciseId: String(exercise?.libraryExerciseId || ""),
-    name: String(exercise?.name || "Untitled exercise").slice(0, 50), typeTagId: String(exercise?.typeTagId || ""), difficultyTagId: String(exercise?.difficultyTagId || ""), note: String(exercise?.note || "").slice(0, 500),
+    name: String(exercise?.name || "Untitled exercise").slice(0, 50), typeTagId: String(exercise?.typeTagId || ""), weightMode: weightModeById(weightMode)?.id || "", difficultyTagId: String(exercise?.difficultyTagId || ""), note: String(exercise?.note || "").slice(0, 500),
     sets: Array.isArray(exercise?.sets) ? exercise.sets.map(set => ({ id: String(set.id || makeId()), weight: String(set.weight ?? ""), reps: String(set.reps ?? "") })) : [],
   };
 }
@@ -59,7 +61,7 @@ function migrateV4(previous) {
     const normalized = normalizeLibraryExercise({ ...fallback, ...raw }); const key = normalizeName(normalized.name);
     let shared = byName.get(key);
     if (!shared) { shared = { ...normalized, id: makeId(), archived: false }; migrated.library.push(shared); byName.set(key, shared); }
-    else { if (!shared.typeTagId && normalized.typeTagId) shared.typeTagId = normalized.typeTagId; if (!shared.note && normalized.note) shared.note = normalized.note; }
+    else { if (!shared.typeTagId && normalized.typeTagId) shared.typeTagId = normalized.typeTagId; if (!shared.weightMode && normalized.weightMode) shared.weightMode = normalized.weightMode; if (!shared.note && normalized.note) shared.note = normalized.note; }
     return shared;
   };
   for (const rawBase of previous.library || []) {

@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey } from "./core.js?v=20260904-6";
-import { saveState, state } from "./storage.js?v=20260904-6";
+import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey, weightModeById } from "./core.js?v=20260904-7";
+import { saveState, state } from "./storage.js?v=20260904-7";
 import {
-  activeScheduleItem, createLibraryExercise, fillTagSelect, isCurrentWeekDate,
+  activeScheduleItem, createLibraryExercise, fillTagSelect, fillWeightModeSelect, isCurrentWeekDate,
   libraryExercise, programWeek, syncDefinitionToCurrentSessions, syncSelectedSessionToPlan, tagById,
-} from "./workouts.js?v=20260904-6";
+} from "./workouts.js?v=20260904-7";
 
 export function initManager({ closeHistory, renderApp, showToast }) {
   const drawer = $("#manageDrawer"); const backdrop = $("#manageBackdrop"); const tagDialog = $("#tagDialog");
@@ -100,11 +100,13 @@ export function initManager({ closeHistory, renderApp, showToast }) {
     exercises.forEach(exercise => list.append(renderLibraryEditor(exercise)));
   }
   function renderLibraryEditor(exercise) {
-    const details = document.createElement("details"); details.className = "library-editor"; const type = tagById("type", exercise.typeTagId);
-    details.innerHTML = `<summary><span class="library-editor-name">${escapeHtml(exercise.name)}</span><span class="library-editor-status">${exercise.archived ? "Archived" : escapeHtml(type?.label || "Exercise")}</span></summary><div class="library-fields"><label>Name<input class="library-name" maxlength="50"></label><label>Exercise type<select class="library-type"></select></label><label>Shared setup note<textarea class="library-note" maxlength="500" rows="3"></textarea></label><div class="library-actions"><button class="archive-button" type="button">${exercise.archived ? "Restore" : "Archive"}</button><button class="delete-library-button" type="button">Delete permanently</button></div></div>`;
+    const details = document.createElement("details"); details.className = "library-editor"; const type = tagById("type", exercise.typeTagId); const weightMode = weightModeById(exercise.weightMode);
+    const status = [type?.label || "Exercise", weightMode?.label].filter(Boolean).join(" · ");
+    details.innerHTML = `<summary><span class="library-editor-name">${escapeHtml(exercise.name)}</span><span class="library-editor-status">${exercise.archived ? "Archived" : escapeHtml(status)}</span></summary><div class="library-fields"><label>Name<input class="library-name" maxlength="50"></label><label>Exercise type<select class="library-type"></select></label><label>Weight tracking<select class="library-weight-mode"></select></label><label>Shared setup note<textarea class="library-note" maxlength="500" rows="3"></textarea></label><div class="library-actions"><button class="archive-button" type="button">${exercise.archived ? "Restore" : "Archive"}</button><button class="delete-library-button" type="button">Delete permanently</button></div></div>`;
     const name = details.querySelector(".library-name"); name.value = exercise.name;
     name.addEventListener("change", () => { const next = name.value.trim(); const duplicate = state.library.find(item => item.id !== exercise.id && normalizeName(item.name) === normalizeName(next)); if (!next || duplicate) { showToast(duplicate ? "An exercise with that name already exists" : "Name cannot be empty"); name.value = exercise.name; return; } exercise.name = next; syncDefinitionToCurrentSessions(exercise); saveState(); renderLibraryManager(); renderApp(); });
     const typeSelect = details.querySelector(".library-type"); fillTagSelect(typeSelect, "type", exercise.typeTagId); typeSelect.addEventListener("change", () => { exercise.typeTagId = typeSelect.value; syncDefinitionToCurrentSessions(exercise); saveState(); renderApp(); });
+    const weightModeSelect = details.querySelector(".library-weight-mode"); fillWeightModeSelect(weightModeSelect, exercise.weightMode); weightModeSelect.addEventListener("change", () => { exercise.weightMode = weightModeSelect.value; syncDefinitionToCurrentSessions(exercise); saveState(); renderLibraryManager(); renderApp(); });
     const note = details.querySelector(".library-note"); note.value = exercise.note; note.addEventListener("input", () => { exercise.note = note.value; syncDefinitionToCurrentSessions(exercise); saveState(); });
     details.querySelector(".archive-button").addEventListener("click", () => { exercise.archived = !exercise.archived; saveState(); renderLibraryManager(); showToast(exercise.archived ? "Exercise archived" : "Exercise restored"); });
     details.querySelector(".delete-library-button").addEventListener("click", () => deleteLibraryExercise(exercise)); return details;

@@ -11,7 +11,7 @@
     <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <title>Rep Routine</title>
-    <link rel="stylesheet" href="styles.css?v=20260904-6" />
+    <link rel="stylesheet" href="styles.css?v=20260904-7" />
   </head>
   <body>
     <div class="app-shell">
@@ -47,7 +47,7 @@
         <button class="add-exercise-button" id="openManageFromWorkout" type="button">⚙ Manage workout plan</button>
       </main>
 
-      <footer class="app-version" aria-label="Application version">Rep Routine <span id="appVersion">2.0.3</span></footer>
+      <footer class="app-version" aria-label="Application version">Rep Routine <span id="appVersion">2.1.0</span></footer>
     </div>
 
     <section class="pwa-banner hidden" id="updateBanner" aria-labelledby="updateTitle">
@@ -163,7 +163,7 @@
       </div>
       <div class="wheel-picker">
         <div class="wheel-column">
-          <span class="wheel-label">Weight (kg)</span>
+          <span class="wheel-label" id="weightWheelLabel">Weight (kg)</span>
           <div class="picker-wheel-shell">
             <div class="picker-wheel" id="weightWheel" role="listbox" aria-label="Weight in kilograms" tabindex="0"></div>
           </div>
@@ -239,6 +239,7 @@
           <p class="note-preview hidden"></p>
           <div class="set-list-heading" aria-hidden="true">
             <span>Sets</span>
+            <span class="set-weight-heading">Weight</span>
           </div>
           <div class="sets-list"></div>
           <button class="add-set-button" type="button">＋ Add set</button>
@@ -251,7 +252,7 @@
         <button class="set-summary-button" type="button" aria-haspopup="dialog" aria-controls="setPickerDialog">
           <span class="set-index"><span class="set-index-label">Set</span><span class="set-number"></span></span>
           <span class="set-performance">
-            <span class="set-metric weight-metric"><span class="weight-value">—</span><span class="set-unit">kg</span></span>
+            <span class="set-metric weight-metric"><span class="weight-value">—</span><span class="set-unit">kg</span><span class="weight-mode-badge hidden"></span></span>
             <span class="set-times" aria-hidden="true">×</span>
             <span class="set-metric reps-metric"><span class="reps-value">—</span><span class="set-unit">reps</span></span>
           </span>
@@ -267,6 +268,6 @@
       </div>
     </template>
 
-    <script type="module" src="js/app.js?v=20260904-6"></script>
+    <script type="module" src="js/app.js?v=20260904-7"></script>
   </body>
 </html>

@@ -19,6 +19,11 @@ export const defaultTags = {
   ],
 };
 
+export const weightModes = [
+  { id: "per-hand", label: "Per hand", shortLabel: "Each", heading: "Weight / hand", pickerLabel: "Weight per hand (kg)" },
+  { id: "total-load", label: "Total load", shortLabel: "Total", heading: "Total weight", pickerLabel: "Total weight (kg)" },
+];
+
 export function $(selector) { return document.querySelector(selector); }
 export function startOfDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
 export function toDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
@@ -36,6 +41,7 @@ export function defaultSelectedDate() {
 }
 export function makeId() { return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 export function normalizeName(name) { return String(name || "").trim().toLocaleLowerCase().replace(/\s+/g, " "); }
+export function weightModeById(id) { return weightModes.find(mode => mode.id === id); }
 export function copyDefaultTags() { return JSON.parse(JSON.stringify(defaultTags)); }
 export function emptyPlans() { return Object.fromEntries(schedule.map(day => [day.key, []])); }
 export function dayForDate(dateKey) { return schedule[Math.min(Math.max(fromDateKey(dateKey).getDay() - 1, 0), 4)]; }
