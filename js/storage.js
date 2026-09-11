@@ -1,7 +1,7 @@
 import {
   copyDefaultTags, currentWeek, dayForDate, defaultSelectedDate, defaultTags, emptyPlans,
   makeId, makeSession, normalizeName, schedule, toDateKey, weightModeById,
-} from "./core.js?v=20260904-7";
+} from "./core.js?v=20260911-1";
 
 const STORAGE_KEY = "rep-routine-v5";
 const V4_STORAGE_KEY = "rep-routine-v4";
@@ -25,9 +25,17 @@ function copyMetadata(candidate, normalized) {
     normalized.tags[group] = uniqueTags([...defaultTags[group], ...custom.filter(tag => !tag.builtin)]);
   }
 }
+function normalizePerformanceSets(sets) {
+  return Array.isArray(sets) ? sets.map(set => ({ weight: String(set?.weight ?? ""), reps: String(set?.reps ?? "") })) : null;
+}
 function normalizeLibraryExercise(exercise) {
   const weightMode = String(exercise?.weightMode || "");
-  return { id: String(exercise?.id || makeId()), name: String(exercise?.name || "Untitled exercise").slice(0, 50), typeTagId: String(exercise?.typeTagId || ""), weightMode: weightModeById(weightMode)?.id || "", note: String(exercise?.note || "").slice(0, 500), archived: Boolean(exercise?.archived) };
+  return {
+    id: String(exercise?.id || makeId()), name: String(exercise?.name || "Untitled exercise").slice(0, 50),
+    typeTagId: String(exercise?.typeTagId || ""), weightMode: weightModeById(weightMode)?.id || "",
+    note: String(exercise?.note || "").slice(0, 500), archived: Boolean(exercise?.archived),
+    latestSets: normalizePerformanceSets(exercise?.latestSets),
+  };
 }
 function normalizeSlot(slot) {
   return {
@@ -43,6 +51,26 @@ function normalizeSessionExercise(exercise) {
     sets: Array.isArray(exercise?.sets) ? exercise.sets.map(set => ({ id: String(set.id || makeId()), weight: String(set.weight ?? ""), reps: String(set.reps ?? "") })) : [],
   };
 }
+function hydrateLatestSets(candidate) {
+  const activeDate = defaultSelectedDate();
+  const sessions = Object.values(candidate.sessions).sort((a, b) => b.date.localeCompare(a.date));
+  for (const definition of candidate.library) {
+    if (Array.isArray(definition.latestSets)) continue;
+    // Older releases stored performance only in dated cards. Prefer the most
+    // recent completed day so an already-created future/today card cannot win
+    // over the workout that actually changed the shared exercise.
+    const completed = sessions.find(session => session.date < activeDate && session.exercises.some(item => item.libraryExerciseId === definition.id));
+    const fallback = sessions.find(session => session.exercises.some(item => item.libraryExerciseId === definition.id));
+    const exercise = (completed || fallback)?.exercises.find(item => item.libraryExerciseId === definition.id);
+    definition.latestSets = normalizePerformanceSets(exercise?.sets) || [];
+  }
+  const definitions = new Map(candidate.library.map(definition => [definition.id, definition]));
+  sessions.forEach(session => session.exercises.forEach(exercise => {
+    const definition = definitions.get(exercise.libraryExerciseId); if (!definition) return;
+    exercise.sets = definition.latestSets.map(set => ({ id: makeId(), weight: set.weight, reps: set.reps }));
+  }));
+  return candidate;
+}
 function normalizeV5(candidate) {
   const normalized = createInitialState(); copyMetadata(candidate, normalized);
   normalized.library = (candidate.library || []).map(normalizeLibraryExercise);
@@ -51,7 +79,7 @@ function normalizeV5(candidate) {
   for (const [key, session] of Object.entries(candidate.sessions || {})) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(key) && Array.isArray(session?.exercises)) normalized.sessions[key] = makeSession(key, session.exercises.map(normalizeSessionExercise));
   }
-  return normalized;
+  return hydrateLatestSets(normalized);
 }
 
 function migrateV4(previous) {
@@ -94,7 +122,7 @@ function migrateV4(previous) {
     });
     migrated.sessions[key] = makeSession(key, exercises);
   }
-  return migrated;
+  return hydrateLatestSets(migrated);
 }
 function migrateV3ToV4(previous) {
   const converted = { version: 4, selectedDate: previous.selectedDate, programStartDate: previous.programStartDate, tags: previous.tags, library: [], plans: emptyPlans(), sessions: {} };

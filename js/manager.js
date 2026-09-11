@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey, weightModeById } from "./core.js?v=20260904-7";
-import { saveState, state } from "./storage.js?v=20260904-7";
+import { $, currentWeek, dayForDate, escapeHtml, makeId, normalizeName, schedule, toDateKey, weightModeById } from "./core.js?v=20260911-1";
+import { saveState, state } from "./storage.js?v=20260911-1";
 import {
   activeScheduleItem, createLibraryExercise, fillTagSelect, fillWeightModeSelect, isCurrentWeekDate,
   libraryExercise, programWeek, syncDefinitionToCurrentSessions, syncSelectedSessionToPlan, tagById,
-} from "./workouts.js?v=20260904-7";
+} from "./workouts.js?v=20260911-1";
 
 export function initManager({ closeHistory, renderApp, showToast }) {
   const drawer = $("#manageDrawer"); const backdrop = $("#manageBackdrop"); const tagDialog = $("#tagDialog");

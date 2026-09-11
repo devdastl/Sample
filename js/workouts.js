@@ -1,5 +1,5 @@
-import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey, weightModes } from "./core.js?v=20260904-7";
-import { saveState, state } from "./storage.js?v=20260904-7";
+import { currentWeek, dayForDate, fromDateKey, makeId, makeSession, normalizeName, startOfDay, toDateKey, weightModes } from "./core.js?v=20260911-1";
+import { saveState, state } from "./storage.js?v=20260911-1";
 
 export function programWeek(dateKey) {
   const difference = startOfDay(fromDateKey(dateKey)) - startOfDay(fromDateKey(state.programStartDate));
@@ -19,13 +19,16 @@ export function latestPerformance(exerciseId, beforeDate) {
   }
   return null;
 }
+function sessionSets(sets) {
+  return (sets || []).map(set => ({ id: makeId(), weight: String(set.weight ?? ""), reps: String(set.reps ?? "") }));
+}
 export function exerciseFromSlot(slot, dateKey) {
   const scheduled = activeScheduleItem(slot, dateKey); const definition = libraryExercise(scheduled?.exerciseId); if (!definition) return null;
   const previous = latestPerformance(definition.id, dateKey);
   return {
     id: makeId(), slotId: slot.id, libraryExerciseId: definition.id, name: definition.name,
     typeTagId: definition.typeTagId, weightMode: definition.weightMode, difficultyTagId: "", note: definition.note,
-    sets: previous ? previous.sets.map(set => ({ id: makeId(), weight: set.weight, reps: set.reps })) : [],
+    sets: Array.isArray(definition.latestSets) ? sessionSets(definition.latestSets) : sessionSets(previous?.sets),
   };
 }
 export function getSession(dateKey = state.selectedDate) {
@@ -50,19 +53,34 @@ export function updateExerciseNote(exercise, note) {
   }
   saveState();
 }
+export function updateLatestPerformance(exercise) {
+  const definition = libraryExercise(exercise.libraryExerciseId); if (!definition) return 0;
+  definition.latestSets = exercise.sets.map(set => ({ weight: String(set.weight ?? ""), reps: String(set.reps ?? "") }));
+  let updated = 0;
+  Object.values(state.sessions).forEach(session => {
+    session.exercises.filter(item => item !== exercise && item.libraryExerciseId === definition.id).forEach(item => {
+      item.sets = sessionSets(definition.latestSets); updated += 1;
+    });
+  });
+  return updated;
+}
 export function syncSelectedSessionToPlan() {
   if (!isCurrentWeekDate(state.selectedDate)) return;
   const session = getSession(); const day = dayForDate(state.selectedDate);
   session.exercises = state.plans[day.key].map(slot => {
     const active = activeScheduleItem(slot, state.selectedDate); const existing = session.exercises.find(exercise => exercise.slotId === slot.id);
-    if (existing && existing.libraryExerciseId === active?.exerciseId) return existing;
+    if (existing && existing.libraryExerciseId === active?.exerciseId) {
+      const definition = libraryExercise(existing.libraryExerciseId);
+      if (definition && Array.isArray(definition.latestSets)) existing.sets = sessionSets(definition.latestSets);
+      return existing;
+    }
     return exerciseFromSlot(slot, state.selectedDate);
   }).filter(Boolean);
   saveState();
 }
 export function createLibraryExercise(name) {
   const existing = state.library.find(item => normalizeName(item.name) === normalizeName(name)); if (existing) return existing;
-  const exercise = { id: makeId(), name: name.trim().slice(0, 50), typeTagId: "", weightMode: "", note: "", archived: false };
+  const exercise = { id: makeId(), name: name.trim().slice(0, 50), typeTagId: "", weightMode: "", note: "", archived: false, latestSets: [] };
   state.library.push(exercise); saveState(); return exercise;
 }
 export function tagById(group, id) { return state.tags[group].find(tag => tag.id === id); }

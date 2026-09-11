@@ -1,9 +1,9 @@
-import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, today, toDateKey, weightModeById } from "./core.js?v=20260904-7";
-import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260904-7";
-import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote } from "./workouts.js?v=20260904-7";
-import { initManager } from "./manager.js?v=20260904-7";
-import { initTimer } from "./timer.js?v=20260904-7";
-import { initPwa } from "./pwa.js?v=20260904-7";
+import { $, currentWeek, dayForDate, defaultSelectedDate, escapeHtml, formatDate, fromDateKey, makeId, schedule, today, toDateKey, weightModeById } from "./core.js?v=20260911-1";
+import { compactLatestState, normalizeImportedState, replaceState, resetState, saveState, state } from "./storage.js?v=20260911-1";
+import { fillTagSelect, getSession, isCurrentWeekDate, libraryExercise, syncSelectedSessionToPlan, tagById, updateExerciseNote, updateLatestPerformance } from "./workouts.js?v=20260911-1";
+import { initManager } from "./manager.js?v=20260911-1";
+import { initTimer } from "./timer.js?v=20260911-1";
+import { initPwa } from "./pwa.js?v=20260911-1";
 
 const dayTabs = $("#dayTabs"); const exerciseList = $("#exerciseList"); const exerciseCount = $("#exerciseCount");
 const workoutTitle = $("#workoutTitle"); const dayLabel = $("#dayLabel"); const dateLabel = $("#dateLabel");
@@ -12,7 +12,7 @@ let expandedExerciseId = null; let toastTimeout; let manager;
 const AUTO_BACKUP_KEY = "rep-routine-last-friday-backup";
 const weightValues = ["", ...Array.from({ length: 201 }, (_, index) => String(index / 2))];
 const repValues = ["", ...Array.from({ length: 30 }, (_, index) => String(index + 1))];
-let editingSet = null; let pickerReturnFocus = null;
+let editingSet = null; let editingSetExercise = null; let pickerReturnFocus = null;
 let editingNoteExercise = null; let noteReturnFocus = null;
 
 function syncSelectedPlanIfUpcoming() {
@@ -56,7 +56,7 @@ function renderExercise(exercise, exerciseIndex) {
   collapseButton.addEventListener("click", () => { const open = body.classList.contains("hidden"); document.querySelectorAll(".exercise-card.open").forEach(item => setCardExpanded(item, false)); expandedExerciseId = open ? exercise.id : null; setCardExpanded(card, open); });
   const difficulty = card.querySelector(".difficulty-select"); fillTagSelect(difficulty, "difficulty", exercise.difficultyTagId); difficulty.addEventListener("change", () => { exercise.difficultyTagId = difficulty.value; saveState(); });
   const setsList = card.querySelector(".sets-list"); exercise.sets.forEach((set, index) => setsList.append(renderSet(exercise, set, index)));
-  card.querySelector(".add-set-button").addEventListener("click", () => { exercise.sets.push({ id: makeId(), weight: "", reps: "" }); saveState(); render(); }); return card;
+  card.querySelector(".add-set-button").addEventListener("click", () => { exercise.sets.push({ id: makeId(), weight: "", reps: "" }); updateLatestPerformance(exercise); saveState(); render(); }); return card;
 }
 function setCardExpanded(card, expanded) { card.classList.toggle("open", expanded); card.querySelector(".exercise-body").classList.toggle("hidden", !expanded); card.querySelector(".exercise-collapse").setAttribute("aria-expanded", String(expanded)); }
 function renderSet(exercise, set, index) {
@@ -70,7 +70,7 @@ function renderSet(exercise, set, index) {
   summary.setAttribute("aria-label", `Edit ${exercise.name}, set ${index + 1}: ${weight === "" ? "weight not set" : `${weight} kilograms${weightMode ? `, ${weightMode.label.toLowerCase()}` : ""}`}, ${reps === "" ? "repetitions not set" : `${reps} repetitions`}`);
   summary.addEventListener("click", () => openSetPicker(set, exercise, summary));
   const remove = row.querySelector(".remove-set"); remove.setAttribute("aria-label", `Remove set ${index + 1} of ${exercise.name}`);
-  remove.addEventListener("click", () => { exercise.sets.splice(index, 1); saveState(); render(); }); return row;
+  remove.addEventListener("click", () => { exercise.sets.splice(index, 1); updateLatestPerformance(exercise); saveState(); render(); }); return row;
 }
 
 function renderHistory() {
@@ -137,7 +137,7 @@ function setWheelValue(wheel, value) {
   selectWheelIndex(wheel, index);
 }
 function openSetPicker(set, exercise, returnFocus) {
-  editingSet = set; pickerReturnFocus = returnFocus; const dialog = $("#setPickerDialog"); dialog.showModal();
+  editingSet = set; editingSetExercise = exercise; pickerReturnFocus = returnFocus; const dialog = $("#setPickerDialog"); dialog.showModal();
   const weightMode = weightModeById(exercise.weightMode); $("#weightWheelLabel").textContent = weightMode?.pickerLabel || "Weight (kg)";
   $("#weightWheel").setAttribute("aria-label", weightMode?.pickerLabel || "Weight in kilograms");
   requestAnimationFrame(() => { setWheelValue($("#weightWheel"), set.weight); setWheelValue($("#repsWheel"), set.reps); });
@@ -188,9 +188,9 @@ initPwa({
 buildWheel($("#weightWheel"), weightValues); buildWheel($("#repsWheel"), repValues);
 $("#closeSetPickerButton").addEventListener("click", () => $("#setPickerDialog").close());
 $("#setPickerDoneButton").addEventListener("click", () => {
-  if (!editingSet) return; editingSet.weight = $("#weightWheel").dataset.value; editingSet.reps = $("#repsWheel").dataset.value; saveState(); $("#setPickerDialog").close(); render();
+  if (!editingSet || !editingSetExercise) return; editingSet.weight = $("#weightWheel").dataset.value; editingSet.reps = $("#repsWheel").dataset.value; updateLatestPerformance(editingSetExercise); saveState(); $("#setPickerDialog").close(); render();
 });
-$("#setPickerDialog").addEventListener("close", () => { editingSet = null; pickerReturnFocus?.focus(); pickerReturnFocus = null; });
+$("#setPickerDialog").addEventListener("close", () => { editingSet = null; editingSetExercise = null; pickerReturnFocus?.focus(); pickerReturnFocus = null; });
 $("#exerciseNoteInput").addEventListener("input", saveNoteInput);
 $("#closeNoteDialogButton").addEventListener("click", () => $("#noteDialog").close());
 $("#doneNoteButton").addEventListener("click", () => $("#noteDialog").close());

@@ -1,49 +1,49 @@
 {
-  "version": "2.1.0",
+  "version": "2.1.1",
   "assets": [
     {
       "url": "./",
-      "sha256": "7649ce750f67137a0585d3884995695773772fc960937ff74786dae8bf13fc2b"
+      "sha256": "025788f15796f4ae40c546bce304f7b608c7b6dd2c0382d0d37cc65f58d2aedd"
     },
     {
       "url": "./index.html",
-      "sha256": "7649ce750f67137a0585d3884995695773772fc960937ff74786dae8bf13fc2b"
+      "sha256": "025788f15796f4ae40c546bce304f7b608c7b6dd2c0382d0d37cc65f58d2aedd"
     },
     {
       "url": "./manifest.webmanifest",
       "sha256": "a9d956ae8690e2eb26bc75a200b9ccb079b5de7a107e05ff90ccf4118f1998b0"
     },
     {
-      "url": "./styles.css?v=20260904-7",
+      "url": "./styles.css?v=20260911-1",
       "sha256": "a7222eb7c37042b972450d84e74af29dc7a5c06011029f7bd6f5a8ce8de9685b"
     },
     {
-      "url": "./js/core.js?v=20260904-7",
+      "url": "./js/core.js?v=20260911-1",
       "sha256": "942aaea079378e823d9dea27c37a822835f60089593140e2cfe58bd9e33a89a8"
     },
     {
-      "url": "./js/storage.js?v=20260904-7",
-      "sha256": "0e08762a655a8e2fcf92e473845a1ff663ef29468bcd69d04b6838f19a192129"
+      "url": "./js/storage.js?v=20260911-1",
+      "sha256": "a2991ed4c897cd8d2bc28a59c8acb4c8cc711887ccc382ec2324ecb5be7f7196"
     },
     {
-      "url": "./js/workouts.js?v=20260904-7",
-      "sha256": "d21327601a89e91d7d7477fc6238289d6b21aed57fd7f6ec6154f1e0a291609d"
+      "url": "./js/workouts.js?v=20260911-1",
+      "sha256": "5f36cf67b6a24c75905010eb0bddd4a45a2b6157e39003888819adfd4be7be89"
     },
     {
-      "url": "./js/manager.js?v=20260904-7",
-      "sha256": "6216d0bb759608309b74e4bc4386e28477125c582d8307e5e0249e80ad2fbad7"
+      "url": "./js/manager.js?v=20260911-1",
+      "sha256": "ad4676f29d011b76cbdbfd9dcebab6d622c2443013964f81d525137cbe398bc0"
     },
     {
-      "url": "./js/timer.js?v=20260904-7",
-      "sha256": "369ec051dbf358178ac7278b05f25e345f22fba8a0145b26a3af78e0ceaed5c8"
+      "url": "./js/timer.js?v=20260911-1",
+      "sha256": "1a2678d735d3be74d495bd5f142e586235cbd436c9740bc46107f2214635d91b"
     },
     {
-      "url": "./js/pwa.js?v=20260904-7",
-      "sha256": "398f4b1a7ff02df265f9aa1b9f62020c6caebd1cbb0f6ea954cb32d0b53ad7d6"
+      "url": "./js/pwa.js?v=20260911-1",
+      "sha256": "bf4958650fac89caece2c98ae769769d0924313499ee56bbbde6317f02b8bd15"
     },
     {
-      "url": "./js/app.js?v=20260904-7",
-      "sha256": "ea3a8a9d3d7217c686435ae947f9f99d5ce9b83ff0165cbb28af46b31e0f3085"
+      "url": "./js/app.js?v=20260911-1",
+      "sha256": "8cfde8ca44d9cd30ef7d8d5aad0d45147e30b9b4d00c28c60cf6b7bba34d281a"
     },
     {
       "url": "./icons/icon-192.png",

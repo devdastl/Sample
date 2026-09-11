@@ -44,7 +44,7 @@ While online, Rep Routine checks for a newer deployed release in the background.
 | Thursday | Pull |
 | Friday | Push |
 
-Each date is stored as a separate workout session, so changing a future workout never overwrites earlier history.
+Each date retains its workout structure and difficulty rating. Set count, weights, and reps belong to the shared exercise and stay identical everywhere that exercise is used.
 
 ## Features
 
@@ -72,14 +72,15 @@ Each date is stored as a separate workout session, so changing a future workout 
 - Archive exercises to hide them from future selection without affecting active plans or history.
 - Permanently delete an exercise from the library and future plans while retaining readable workout history.
 - Exercise type and notes are shared wherever the exercise is used.
+- Set count, weights, and reps are stored once with the shared Exercise Library entry. Every dated card for that exercise displays the same values.
 
 ### Progressive overload
 
-When a new dated workout is opened, Rep Routine finds the latest earlier performance for each exercise and pre-fills its weights, reps, and sets.
+When a new dated workout is opened, Rep Routine uses the exercise's shared latest performance to pre-fill its weights, reps, and sets.
 
-Progress is shared across weekdays. If Lat Pulldown is performed on Monday and Thursday, Thursday starts with Monday's latest numbers, and the following Monday starts with Thursday's latest numbers.
+Progress is shared across every weekday and date. If Lat Pulldown is performed on Monday and Thursday, editing either card immediately refreshes the other one, including cards that were already prepared.
 
-Different exercises used in scheduled rotations maintain separate performance histories.
+Different exercises used in scheduled rotations maintain separate shared performance values.
 
 When today's or a future workout is opened, its dated session is reconciled with the workout plan. Missing planned exercises are restored in plan order without overwriting weights, reps, notes, or difficulty already recorded. Completed past workouts remain unchanged.
 
